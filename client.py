@@ -8,6 +8,4 @@ sock.connect(('localhost', 8090))
 # Create and send the request.
 hello = HelloClientRequest(sock, "smtp.gmail.com", "enfoiros.org")
 hello.send()
-
-# Close the socket.
-sock.close()
+hello.close()

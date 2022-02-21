@@ -1,6 +1,7 @@
 from abc import abstractmethod
 import json
 
+
 PAYLOAD_REQUEST_MASK  = 10000
 PAYLOAD_RESPONSE_MASK = 20000
 
@@ -95,3 +96,8 @@ class NetworkBasePayload(object):
     # network using the serialize method.
     def send(self):
         self.socket.send(self.serialize())
+
+    # Close the established connection.
+    def close(self):
+        if self.socket is not None:
+            self.socket.close()
