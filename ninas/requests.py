@@ -1,4 +1,4 @@
-from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
+from ninas.network import NetworkBasePayload, NetworkStringInterface, PAYLOAD_REQUEST_MASK
 from ninas.responses import HelloServerResponse
 from ninas.utils import NList
 import socketserver
@@ -83,13 +83,12 @@ class HelloServerRequest(HelloRequest):
 
     # Handle the current request.
     def handle(self):
-        ninas_start = 'ninas.'
-        ninas_spf   = 'v=NINAS.spf'
+        if not self.server_domain_name.startswith(NetworkStringInterface.NINAS_ADDR_START):
+            raise MalformedNinasAddressError(
+                "NINAS server address must be like '" + NetworkStringInterface.NINAS_ADDR_START + ".domain.ext'"
+            )
 
-        if not self.server_domain_name.startswith(ninas_start):
-            raise MalformedNinasAddressError("NINAS server address must be like 'ninas.domain.ext'")
-
-        server_name = self.server_domain_name[len(ninas_start):]
+        server_name = self.server_domain_name[len(NetworkStringInterface.NINAS_ADDR_START):]
 
         # If the domain name doesn't match the
         # server name, we need to verify the SPF
@@ -105,7 +104,7 @@ class HelloServerRequest(HelloRequest):
                 record = str(_record)[1:-1]
 
                 # If It's a NINAS.spf record.
-                if str(record).startswith(ninas_spf):
+                if str(record).startswith(NetworkStringInterface.NINAS_SPF_VALUE):
                     # Check ip6 field.
                     ip6_field = re.findall('ip6=[0-9:a-fA-F]+', record)
                     if len(ip6_field) > 0:
