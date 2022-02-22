@@ -69,12 +69,13 @@ class MalformedPayloadError(RuntimeError): ...
 # network objects.
 class NetworkBasePayload(object):
     __slots__ = [
-        'socket', 'size'
+        'socket', 'port_dst', 'ip_addr_dst', 'size'
     ]
 
     # Initialize the network class.
     def __init__(self, socket):
         self.socket = socket
+        self.ip_addr_dst, self.port_dst = self.socket.getpeername()
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
