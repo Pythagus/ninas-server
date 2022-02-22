@@ -51,5 +51,4 @@ class HelloServerResponse(EmptyResponse):
         super().__init__(socket, RES_HELLO_SERVER)
 
     # Handle the current request.
-    def handle(self):   
-        pass
+    def handle(self): pass

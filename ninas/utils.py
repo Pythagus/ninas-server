@@ -1,5 +1,10 @@
 import json
 
+
+# Base NINAS runtime error.
+class NinasRuntimeError(RuntimeError): ...
+
+
 # Base class to manage NINAS List
 # and add useful tools.
 class NList(object):
@@ -22,4 +27,4 @@ class NList(object):
 
 # Exception raised when a malformed
 # payload was received.
-class MalformedArrayError(RuntimeError): ...
+class MalformedArrayError(NinasRuntimeError): ...

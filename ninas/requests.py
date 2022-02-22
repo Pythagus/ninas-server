@@ -119,10 +119,6 @@ class HelloServerRequest(HelloRequest):
             if self.ip_addr_dst not in ip4 and self.ip_addr_dst not in ip6:
                 raise InvalidNinasSpfError(self.socket)
 
-            print("SPF CHECKED!")
-            response = HelloServerResponse(self.socket)
-            response.send()
-                    
 
     # Convert the class attributes to 
     # bytes to be sent over the network.

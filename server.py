@@ -1,7 +1,19 @@
+from ninas.responses import HelloServerResponse
+from ninas.requests import HelloServerRequest
+from ninas.utils import NinasRuntimeError
 from ninas.network import NetworkTools
+from ninas import console
 import socketserver
 import threading
 import sys
+
+
+# Current server data.
+HOST, PORT = "server.host", int(sys.argv[1])
+
+
+# Base threaded server class.
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer): pass
 
 
 # Main class used to handle
@@ -13,16 +25,20 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         print("CONNECTION FROM : " + str(self.client_address))
 
         while True:
-            request = NetworkTools.receiveNetworkObject(self.request)
-            print(request)
-            request.handle()
+            obj = NetworkTools.receiveNetworkObject(self.request)
+            obj_type = type(obj)
+            
+            # Try to handle the network object.
+            try:
+                obj.handle()
+            except NinasRuntimeError as e:
+                console.warn(e)
+                obj.close()
+            
+            # The client first contact.
+            if obj_type == HelloServerRequest:
+                HelloServerResponse(obj.socket).send()
 
-
-# Current server data.
-HOST, PORT = "server.host", int(sys.argv[1])
-
-# Base threaded server class.
-class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer): pass
 
 # Create the server
 with ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler) as server:
