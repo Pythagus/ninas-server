@@ -1,5 +1,5 @@
 from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK, payloadMustContain, dictToBytes
-from abc import abstractmethod
+from ninas.responses import HelloServerResponse
 import socketserver
 import dns.resolver
 import re
@@ -20,19 +20,15 @@ class Request(NetworkBasePayload, socketserver.BaseRequestHandler):
     @staticmethod
     def classIdentifierCorrespondence(): 
         return {
-            REQ_HELLO_SERVER: HelloServerRequest,
-            REQ_HELLO_CLIENT: HelloClientRequest
+            REQ_HELLO_CLIENT: HelloRequest,
+            REQ_HELLO_SERVER: HelloServerRequest
         }
-
-    # Handle the current request.
-    @abstractmethod
-    def handle(self): pass
 
 
 # Request made from the NINAS server to
 # another NINAS server to request a new
 # connection.
-class HelloServerRequest(Request):
+class HelloRequest(Request):
     __slots__ = [
         'server_domain_name'
     ]
@@ -49,20 +45,20 @@ class HelloServerRequest(Request):
     def unserialize(socket, values):
         payloadMustContain(values, ['server_domain_name'])
         
-        return HelloServerRequest(socket, values['server_domain_name'])
+        return HelloRequest(socket, values['server_domain_name'])
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
     def serialize(self):
         return dictToBytes({
-            'type': REQ_HELLO_SERVER,
+            'type': REQ_HELLO_CLIENT,
             'server_domain_name': self.server_domain_name
         })
 
 
 # Request made from a NINAS client to a
 # NINAS server to request a new connection.
-class HelloClientRequest(HelloServerRequest):
+class HelloServerRequest(HelloRequest):
     __slots__ = [
         'client_domain_name'
     ]
@@ -81,7 +77,7 @@ class HelloClientRequest(HelloServerRequest):
             'server_domain_name', 'client_domain_name'
         ])
 
-        return HelloClientRequest(socket, 
+        return HelloServerRequest(socket, 
             values['server_domain_name'].lower(), 
             values['client_domain_name'].lower()
         )
@@ -126,14 +122,15 @@ class HelloClientRequest(HelloServerRequest):
                 raise InvalidNinasSpfError(self.socket)
 
             print("SPF CHECKED!")
-            # TODO : to continue
+            response = HelloServerResponse(self.socket)
+            response.send()
                     
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
     def serialize(self):
         return dictToBytes({
-            'type': REQ_HELLO_CLIENT,
+            'type': REQ_HELLO_SERVER,
             'server_domain_name': self.server_domain_name,
             'client_domain_name': self.client_domain_name
         })

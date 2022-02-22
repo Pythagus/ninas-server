@@ -13,6 +13,42 @@ class Response(NetworkBasePayload):
     @staticmethod
     def classIdentifierCorrespondence(): 
         return {
-            20010: None
+            RES_HELLO_SERVER: HelloServerResponse
         }
+
+
+class EmptyResponse(Response):
+    __slots__ = ['type']
+
+    def __init__(self, socket, type):
+        super().__init__(socket)
+        self.type = type
+
+    # Convert the class attributes to 
+    # bytes to be sent over the network.
+    def serialize(self):
+        return dictToBytes({
+            'type': self.type,
+        })
+
+    # Convert bytes to current class
+    # attributes.
+    @staticmethod
+    def unserialize(socket, values):
+        payloadMustContain(values, ['type'])
+        class_names = Response.classIdentifierCorrespondence()
+        type = values['type']
+
+        if type in class_names:
+            return class_names[type](socket)
         
+        return None
+
+        
+class HelloServerResponse(EmptyResponse):
+    def __init__(self, socket):
+        super().__init__(socket, RES_HELLO_SERVER)
+
+    # Handle the current request.
+    def handle(self):   
+        pass

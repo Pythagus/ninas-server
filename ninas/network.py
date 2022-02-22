@@ -52,6 +52,13 @@ def createNetworkInstance(socket, dictionnary):
     return class_correspondences[type].unserialize(socket, dictionnary)
 
 
+def receiveBytes(socket, size, buf):
+    while len(buf) < size:
+        buf += socket.recv(size - len(buf))
+
+    return buf
+
+
 # Exception raised when an unknown
 # network payload was received.
 class UnknownPayloadTypeError(RuntimeError):
@@ -93,12 +100,41 @@ class NetworkBasePayload(object):
     @staticmethod
     def classIdentifierCorrespondence(): raise NotImplementedError
 
+     # Handle the current request.
+    @abstractmethod
+    def handle(self): raise NotImplementedError
+
     # Send the current class over the
     # network using the serialize method.
     def send(self):
-        self.socket.send(self.serialize())
+        packet = NetworkPacket(self.serialize())
+        self.socket.send(packet.serialize())
 
     # Close the established connection.
     def close(self):
         if self.socket is not None:
             self.socket.close()
+
+
+# Base packet class used to encapsulate
+# every network payload.
+class NetworkPacket(object):
+    SIZE_LENGTH = 128
+
+    __slots__ = [
+        'payload', 'size'
+    ]
+
+    def __init__(self, payload):
+        self.payload = payload
+        self.size    = len(payload) + NetworkPacket.SIZE_LENGTH
+
+    def serialize(self):
+        size = str(self.size)
+        size = ("0" * (NetworkPacket.SIZE_LENGTH - len(size))) + size
+
+        return bytes(size, "utf-8") + self.payload 
+
+    @staticmethod
+    def unserialize(values):
+        return NetworkPacket(values[NetworkPacket.SIZE_LENGTH:])
