@@ -1,7 +1,6 @@
-from ninas.network import createNetworkInstance, NetworkPacket, receiveBytes
+from ninas.network import NetworkTools
 import socketserver
 import threading
-import json
 import sys
 
 
@@ -12,15 +11,9 @@ import sys
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def handle(self):
         print("CONNECTION FROM : " + str(self.client_address))
-        sock = self.request
 
         while True:
-            buf  = receiveBytes(sock, NetworkPacket.SIZE_LENGTH, b"")
-            size = int(buf)
-            buf  = receiveBytes(sock, size, buf)
-
-            packet = NetworkPacket.unserialize(buf)
-            request = createNetworkInstance(sock, json.loads(packet.payload))
+            request = NetworkTools.receiveNetworkObject(self.request)
             print(request)
             request.handle()
 

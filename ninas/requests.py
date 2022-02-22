@@ -1,5 +1,6 @@
-from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK, payloadMustContain, dictToBytes
+from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
 from ninas.responses import HelloServerResponse
+from ninas.utils import NList
 import socketserver
 import dns.resolver
 import re
@@ -43,17 +44,17 @@ class HelloRequest(Request):
     # attributes.
     @staticmethod
     def unserialize(socket, values):
-        payloadMustContain(values, ['server_domain_name'])
+        NList(values).mustContainKeys('server_domain_name')
         
         return HelloRequest(socket, values['server_domain_name'])
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
     def serialize(self):
-        return dictToBytes({
+        return NList({
             'type': REQ_HELLO_CLIENT,
             'server_domain_name': self.server_domain_name
-        })
+        }).toBytes()
 
 
 # Request made from a NINAS client to a
@@ -73,9 +74,7 @@ class HelloServerRequest(HelloRequest):
     # attributes.
     @staticmethod
     def unserialize(socket, values):
-        payloadMustContain(values, [
-            'server_domain_name', 'client_domain_name'
-        ])
+        NList(values).mustContainKeys('server_domain_name', 'client_domain_name')
 
         return HelloServerRequest(socket, 
             values['server_domain_name'].lower(), 
@@ -129,11 +128,11 @@ class HelloServerRequest(HelloRequest):
     # Convert the class attributes to 
     # bytes to be sent over the network.
     def serialize(self):
-        return dictToBytes({
+        return NList({
             'type': REQ_HELLO_SERVER,
             'server_domain_name': self.server_domain_name,
             'client_domain_name': self.client_domain_name
-        })
+        }).toBytes()
 
 
 # Exception raised when no valid

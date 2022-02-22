@@ -1,75 +1,10 @@
+from ninas.utils import MalformedArrayError
 from abc import abstractmethod
 import json
 
 
 PAYLOAD_REQUEST_MASK  = 10000
 PAYLOAD_RESPONSE_MASK = 20000
-
-
-# Convert the given JSON data to
-# a bytes value.
-def dictToBytes(dictionnary, encoding="utf-8"):
-    return bytes(json.dumps(dictionnary), encoding)
-
-
-# Raise an error if a required key 
-# is not present in the payload array.
-def payloadMustContain(payload, keys):
-    for key in keys:
-        if key not in payload:
-            raise MalformedPayloadError("Payload must contain '" + str(key) + "' field")
-
-
-# Create a network instance from the
-# received payload.
-def createNetworkInstance(socket, dictionnary):
-    if "type" not in dictionnary:
-        raise MalformedPayloadError("Field 'type' not found in payload")
-
-    type = dictionnary['type']
-    class_correspondences = []
-
-    # If the payload is a request.
-    if type & PAYLOAD_REQUEST_MASK == PAYLOAD_REQUEST_MASK:
-        from ninas.requests import Request
-        class_correspondences = Request.classIdentifierCorrespondence()
-
-    # If the payload is a response.
-    elif type & PAYLOAD_RESPONSE_MASK == PAYLOAD_RESPONSE_MASK:
-        from ninas.responses import Response
-        class_correspondences = Response.classIdentifierCorrespondence()
-
-    # Else, It's not a known value.
-    else:
-        raise UnknownPayloadTypeError(type)
-
-    # If the given type doesn't exists
-    # in the correspondence array.
-    if type not in class_correspondences:
-        raise UnknownPayloadTypeError(type)
-
-    # Return the result of the unserialize method.
-    return class_correspondences[type].unserialize(socket, dictionnary)
-
-
-def receiveBytes(socket, size, buf):
-    while len(buf) < size:
-        buf += socket.recv(size - len(buf))
-
-    return buf
-
-
-# Exception raised when an unknown
-# network payload was received.
-class UnknownPayloadTypeError(RuntimeError):
-    # Initialize the error instance.
-    def __init__(self, type):
-        super().__init__(self, "Unknown payload type " + str(type))
-
-
-# Exception raised when a malformed
-# payload was received.
-class MalformedPayloadError(RuntimeError): ...
 
 
 # Base network class used in every
@@ -138,3 +73,78 @@ class NetworkPacket(object):
     @staticmethod
     def unserialize(values):
         return NetworkPacket(values[NetworkPacket.SIZE_LENGTH:])
+
+
+# Class containing the most useful
+# network tools.
+class NetworkTools(object):
+
+    # Receive exactly size bytes from
+    # the given socket and add them to
+    # the given buffer.
+    @staticmethod
+    def receiveBytes(socket, size, buffer):
+        while len(buffer) < size:
+            buffer += socket.recv(size - len(buffer))
+
+        return buffer
+
+    # Create a network instance from the
+    # received payload.
+    @staticmethod
+    def createNetworkInstance(socket, dictionnary):
+        if "type" not in dictionnary:
+            raise MalformedArrayError("Field 'type' not found in payload")
+
+        type = dictionnary['type']
+        class_correspondences = []
+
+        # If the payload is a request.
+        if type & PAYLOAD_REQUEST_MASK == PAYLOAD_REQUEST_MASK:
+            from ninas.requests import Request
+            class_correspondences = Request.classIdentifierCorrespondence()
+
+        # If the payload is a response.
+        elif type & PAYLOAD_RESPONSE_MASK == PAYLOAD_RESPONSE_MASK:
+            from ninas.responses import Response
+            class_correspondences = Response.classIdentifierCorrespondence()
+
+        # Else, It's not a known value.
+        else:
+            raise UnknownPayloadTypeError(type)
+
+        # If the given type doesn't exists
+        # in the correspondence array.
+        if type not in class_correspondences:
+            raise UnknownPayloadTypeError(type)
+
+        # Return the result of the unserialize method.
+        return class_correspondences[type].unserialize(socket, dictionnary)
+
+    # Receive a full network object
+    # from the given socket.
+    @staticmethod
+    def receiveNetworkObject(socket):
+        # Receive the full packet size.
+        buffer = NetworkTools.receiveBytes(socket, NetworkPacket.SIZE_LENGTH, b"")
+
+        # The received size as an integer.
+        size = int(buffer)
+
+        # Receive the missing bytes, also
+        # known as the packet payload.
+        buffer = NetworkTools.receiveBytes(socket, size, buffer)
+
+        # Retrieve the NetworkPacket instance.
+        packet = NetworkPacket.unserialize(buffer)
+
+        # Return the network object instance.
+        return NetworkTools.createNetworkInstance(socket, json.loads(packet.payload))
+
+
+# Exception raised when an unknown
+# network payload was received.
+class UnknownPayloadTypeError(RuntimeError):
+    # Initialize the error instance.
+    def __init__(self, type):
+        super().__init__(self, "Unknown payload type " + str(type))
