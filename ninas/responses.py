@@ -6,6 +6,8 @@ from ninas.utils import NList
 RES_HELLO_SERVER = PAYLOAD_RESPONSE_MASK + 10
 
 
+# Base response class used for every
+# network response.
 class Response(NetworkBasePayload):
 
      # Get a correspondence dictionnary
@@ -18,12 +20,17 @@ class Response(NetworkBasePayload):
         }
 
 
+# Base empty response.
 class EmptyResponse(Response):
     __slots__ = ['type']
 
+    # Initialize the response with the type.
     def __init__(self, socket, type):
         super().__init__(socket)
         self.type = type
+        
+    # Handle the current request.
+    def handle(self): pass
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
@@ -46,9 +53,8 @@ class EmptyResponse(Response):
         return None
 
         
+# Response sent after the first client
+# contact request.
 class HelloServerResponse(EmptyResponse):
     def __init__(self, socket):
         super().__init__(socket, RES_HELLO_SERVER)
-
-    # Handle the current request.
-    def handle(self): pass

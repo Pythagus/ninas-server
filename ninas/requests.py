@@ -1,6 +1,5 @@
 from ninas.network import NetworkBasePayload, NetworkStringInterface, PAYLOAD_REQUEST_MASK
-from ninas.responses import HelloServerResponse
-from ninas.utils import NList
+from ninas.utils import NList, NinasRuntimeError
 import socketserver
 import dns.resolver
 import re
@@ -133,7 +132,7 @@ class HelloServerRequest(HelloRequest):
 # Exception raised when no valid
 # SPF records were found in the
 # DNS records.
-class InvalidNinasSpfError(RuntimeError): 
+class InvalidNinasSpfError(NinasRuntimeError): 
     __slots__ = [
         'socket'
     ]
@@ -143,4 +142,4 @@ class InvalidNinasSpfError(RuntimeError):
         self.socket = socket
 
 
-class MalformedNinasAddressError(RuntimeError): ...
+class MalformedNinasAddressError(NinasRuntimeError): ...
