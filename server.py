@@ -1,6 +1,6 @@
 from ninas.responses import HelloServerResponse
 from ninas.requests import HelloServerRequest, MailFromRequest
-from ninas.utils import NinasRuntimeError
+from ninas.utils import NinasRuntimeError, MailInfo
 from ninas.network import NetworkTools
 from ninas import console
 import socketserver
@@ -22,6 +22,8 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer): pa
 # is thread-programming.
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def handle(self):
+
+        mail = MailInfo()
         print("CONNECTION FROM : " + str(self.client_address))
 
         while True:
@@ -30,7 +32,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             
             # Try to handle the network object.
             try:
-                obj.handle()
+                obj.handle(mail)
             except NinasRuntimeError as e:
                 console.warn(e)
                 obj.close()
@@ -40,6 +42,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 HelloServerResponse(obj.socket).send()
             elif obj_type == MailFromRequest:
                 console.warn("What should we do after a MailFromRequest ?") # TODO
+                mail.debug()
+
 
 
 # Create the server

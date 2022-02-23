@@ -84,7 +84,7 @@ class HelloServerRequest(HelloRequest):
         )
 
     # Handle the current request.
-    def handle(self):
+    def handle(self, mail=None):
         console.debug("Handling HelloServerRequest")
         
         if not self.server_domain_name.startswith(NetworkStringInterface.NINAS_ADDR_START):
@@ -126,6 +126,8 @@ class HelloServerRequest(HelloRequest):
                 raise InvalidNinasSpfError(self.socket)
             
             console.debug("   SPF checked!")
+            mail.setMail('client_domain_name', self.client_domain_name)
+            mail.setMail('server_domain_name', self.server_domain_name)
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
@@ -142,25 +144,23 @@ class HelloServerRequest(HelloRequest):
 # email to one of its users.
 class MailFromRequest(Request):
     __slots__ = [
-        'user_name', 'domain_name'
+        'user_name'
     ]
 
     # Initialize the request instance.
-    def __init__(self, socket, user_name, domain_name):
+    def __init__(self, socket, user_name):
         super().__init__(socket)
 
         self.user_name   = user_name
-        self.domain_name = domain_name
         
     # Convert bytes to current class
     # attributes.
     @staticmethod
     def unserialize(socket, values):
-        NList(values).mustContainKeys('user_name', 'domain_name')
+        NList(values).mustContainKeys('user_name')
 
         return MailFromRequest(socket, 
             values['user_name'].lower(), 
-            values['domain_name'].lower()
         )
 
     # Convert the class attributes to 
@@ -169,16 +169,15 @@ class MailFromRequest(Request):
         return NList({
             'type': REQ_MAIL_FROM,
             'user_name': self.user_name,
-            'domain_name': self.domain_name
         }).toBytes()
         
     # Handle the current request.
-    def handle(self):
+    def handle(self, mail=None):
         console.debug("Handling MailFromRequest")
         console.warn("HANDLE MAIL FROM")
-        # TODO : check whether the received domain name was previously authorized
-        # TODO : attach the user_name and the domain_name to the socket to retrieve them
-        #        when the mail will be sent over this same socket.
+
+        mail.setMail('user_name', self.user_name)
+
 
 
 # Exception raised when no valid

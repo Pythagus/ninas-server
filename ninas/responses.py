@@ -31,7 +31,7 @@ class EmptyResponse(Response):
         self.type = type
         
     # Handle the current request.
-    def handle(self): pass
+    def handle(self, mail=None): pass
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
@@ -60,5 +60,11 @@ class HelloServerResponse(EmptyResponse):
     def __init__(self, socket):
         super().__init__(socket, RES_HELLO_SERVER)
         
-    def handle(self):
+    def handle(self, mail=None):
         console.debug("Handling HelloServerResponse")
+
+
+
+
+
+

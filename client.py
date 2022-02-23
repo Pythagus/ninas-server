@@ -13,6 +13,7 @@ sock.bind(('client.host', 0)) # For development purpose only
 sock.connect(('server.host', int(sys.argv[1])))
 
 
+
 # Create and send the HELLO request.
 hello = HelloServerRequest(sock, "ninas.client.host", "dmolina.fr")
 hello.send()
@@ -31,4 +32,4 @@ while True:
     
     # The client first contact response.
     if obj_type == HelloServerResponse:
-        MailFromRequest(sock, "elies", "dmolina.fr").send()
+        MailFromRequest(sock, "elies").send()
