@@ -1,5 +1,6 @@
 from ninas.network import NetworkBasePayload, NetworkStringInterface, PAYLOAD_REQUEST_MASK
 from ninas.utils import NList, NinasRuntimeError
+from ninas import console
 import socketserver
 import dns.resolver
 import re
@@ -84,6 +85,8 @@ class HelloServerRequest(HelloRequest):
 
     # Handle the current request.
     def handle(self):
+        console.debug("Handling HelloServerRequest")
+        
         if not self.server_domain_name.startswith(NetworkStringInterface.NINAS_ADDR_START):
             raise MalformedNinasAddressError(
                 "NINAS server address must be like '" + NetworkStringInterface.NINAS_ADDR_START + ".domain.ext'"
@@ -95,6 +98,8 @@ class HelloServerRequest(HelloRequest):
         # server name, we need to verify the SPF
         # field in the DNS records.
         if server_name != self.client_domain_name:
+            console.debug("   Checking SPF records for " + str(self.client_domain_name) + "...")
+            
             # Check the NINAS.spf entry if there's any.
             answers = dns.resolver.query(self.client_domain_name, 'TXT')
 
@@ -119,6 +124,8 @@ class HelloServerRequest(HelloRequest):
             # If no matching IP was found.
             if self.ip_addr_dst not in ip4 and self.ip_addr_dst not in ip6:
                 raise InvalidNinasSpfError(self.socket)
+            
+            console.debug("   SPF checked!")
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
@@ -167,7 +174,8 @@ class MailFromRequest(Request):
         
     # Handle the current request.
     def handle(self):
-        print("HANDLE MAIL FROM")
+        console.debug("Handling MailFromRequest")
+        console.warn("HANDLE MAIL FROM")
         # TODO : check whether the received domain name was previously authorized
         # TODO : attach the user_name and the domain_name to the socket to retrieve them
         #        when the mail will be sent over this same socket.

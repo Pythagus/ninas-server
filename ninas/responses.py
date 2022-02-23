@@ -1,5 +1,6 @@
 from ninas.network import NetworkBasePayload, PAYLOAD_RESPONSE_MASK
 from ninas.utils import NList
+from ninas import console
 
 
 # Responses identifiers.
@@ -58,3 +59,6 @@ class EmptyResponse(Response):
 class HelloServerResponse(EmptyResponse):
     def __init__(self, socket):
         super().__init__(socket, RES_HELLO_SERVER)
+        
+    def handle(self):
+        console.debug("Handling HelloServerResponse")

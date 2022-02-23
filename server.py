@@ -39,7 +39,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if obj_type == HelloServerRequest:
                 HelloServerResponse(obj.socket).send()
             elif obj_type == MailFromRequest:
-                print("What should we do after a MailFromRequest ?") # TODO
+                console.warn("What should we do after a MailFromRequest ?") # TODO
 
 
 # Create the server
@@ -55,4 +55,5 @@ with ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler) as server:
     server_thread.start()
     
     print("Server loop running in thread:", server_thread.name)
+    print()
     while True: pass
