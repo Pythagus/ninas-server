@@ -8,6 +8,7 @@ import re
 # Requests identifiers.
 REQ_HELLO_SERVER = PAYLOAD_REQUEST_MASK + 10
 REQ_HELLO_CLIENT = PAYLOAD_REQUEST_MASK + 11
+REQ_MAIL_FROM    = PAYLOAD_REQUEST_MASK + 20
 
 
 # Base request class used for
@@ -21,7 +22,8 @@ class Request(NetworkBasePayload, socketserver.BaseRequestHandler):
     def classIdentifierCorrespondence(): 
         return {
             REQ_HELLO_CLIENT: HelloRequest,
-            REQ_HELLO_SERVER: HelloServerRequest
+            REQ_HELLO_SERVER: HelloServerRequest,
+            REQ_MAIL_FROM: MailFromRequest,
         }
 
 
@@ -118,7 +120,6 @@ class HelloServerRequest(HelloRequest):
             if self.ip_addr_dst not in ip4 and self.ip_addr_dst not in ip6:
                 raise InvalidNinasSpfError(self.socket)
 
-
     # Convert the class attributes to 
     # bytes to be sent over the network.
     def serialize(self):
@@ -127,6 +128,49 @@ class HelloServerRequest(HelloRequest):
             'server_domain_name': self.server_domain_name,
             'client_domain_name': self.client_domain_name
         }).toBytes()
+
+
+# The client send the MAIL FROM to
+# notify the server who is sending an
+# email to one of its users.
+class MailFromRequest(Request):
+    __slots__ = [
+        'user_name', 'domain_name'
+    ]
+
+    # Initialize the request instance.
+    def __init__(self, socket, user_name, domain_name):
+        super().__init__(socket)
+
+        self.user_name   = user_name
+        self.domain_name = domain_name
+        
+    # Convert bytes to current class
+    # attributes.
+    @staticmethod
+    def unserialize(socket, values):
+        NList(values).mustContainKeys('user_name', 'domain_name')
+
+        return MailFromRequest(socket, 
+            values['user_name'].lower(), 
+            values['domain_name'].lower()
+        )
+
+    # Convert the class attributes to 
+    # bytes to be sent over the network.
+    def serialize(self):
+        return NList({
+            'type': REQ_MAIL_FROM,
+            'user_name': self.user_name,
+            'domain_name': self.domain_name
+        }).toBytes()
+        
+    # Handle the current request.
+    def handle(self):
+        print("HANDLE MAIL FROM")
+        # TODO : check whether the received domain name was previously authorized
+        # TODO : attach the user_name and the domain_name to the socket to retrieve them
+        #        when the mail will be sent over this same socket.
 
 
 # Exception raised when no valid

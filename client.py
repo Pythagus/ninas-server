@@ -1,5 +1,5 @@
 from ninas.responses import HelloServerResponse
-from ninas.requests import HelloServerRequest
+from ninas.requests import HelloServerRequest, MailFromRequest
 from ninas.utils import NinasRuntimeError
 from ninas.network import NetworkTools
 from ninas import console
@@ -31,4 +31,4 @@ while True:
     
     # The client first contact response.
     if obj_type == HelloServerResponse:
-        print("HelloServerResponse")
+        MailFromRequest(sock, "elies", "dmolina.fr").send()

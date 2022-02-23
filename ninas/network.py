@@ -2,9 +2,9 @@ from ninas.utils import MalformedArrayError
 from abc import abstractmethod
 import json
 
-
+PAYLOAD_MASK_RANGE    = 10000
 PAYLOAD_REQUEST_MASK  = 10000
-PAYLOAD_RESPONSE_MASK = 20000
+PAYLOAD_RESPONSE_MASK = PAYLOAD_REQUEST_MASK + PAYLOAD_MASK_RANGE
 
 
 # Centralizing the whole NINAS
@@ -103,16 +103,16 @@ class NetworkTools(object):
         if "type" not in dictionnary:
             raise MalformedArrayError("Field 'type' not found in payload")
 
-        type = dictionnary['type']
+        type = int(dictionnary['type'])
         class_correspondences = []
 
         # If the payload is a request.
-        if type & PAYLOAD_REQUEST_MASK == PAYLOAD_REQUEST_MASK:
+        if PAYLOAD_REQUEST_MASK <= type <= PAYLOAD_REQUEST_MASK + PAYLOAD_MASK_RANGE - 1:
             from ninas.requests import Request
             class_correspondences = Request.classIdentifierCorrespondence()
 
         # If the payload is a response.
-        elif type & PAYLOAD_RESPONSE_MASK == PAYLOAD_RESPONSE_MASK:
+        elif PAYLOAD_RESPONSE_MASK <= type <= PAYLOAD_RESPONSE_MASK + PAYLOAD_MASK_RANGE - 1:
             from ninas.responses import Response
             class_correspondences = Response.classIdentifierCorrespondence()
 
