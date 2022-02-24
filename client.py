@@ -44,7 +44,7 @@ while True:
         MailPayloadRequest(sock, subject, time.time(), mail_file_name).send()
         break
     elif obj_type == ErrorResponse:
-        break
+        sys.exit(1)
 
 print("Closing client...")
 sock.close()

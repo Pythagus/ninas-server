@@ -40,16 +40,11 @@ with tempfile.NamedTemporaryFile(delete=False) as f:
 
 
 port = sys.argv[1]
-os.system("python3 client.py " + port + " " + dst_email_addr + " '" + subject + "' " + file_name  + " > /dev/null")
+status = os.system("python3 client.py " + port + " " + dst_email_addr + " '" + subject + "' " + file_name  + " > /dev/null")
 
 print()
-print(colorama.Fore.BLUE + LINE_START + "Thank you for using our mail service, see you !")
 
-
-
-
-
-
-
-
-
+if status == 0:
+    print(colorama.Fore.BLUE + LINE_START + "Thank you for using our mail service, see you !")
+else:
+    print("Something went wrong")
