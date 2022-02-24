@@ -1,0 +1,27 @@
+#!/bin/bash
+
+FOLDER=samples
+
+error() {
+  echo -e "\e[31m$1\e[0m"
+  exit
+}
+
+# Check whether enough arguments were passed.
+if [ $# -ne 1 ] ; then
+  error "Usage: ./create-user USER_NAME@DOMAIN_NAME"
+fi
+
+# Check whether the user already exists.
+if [ -d $FOLDER/$1 ] ; then
+  error "User $FOLDER/$1 already exists"
+fi
+
+# Generate the folders in samples.
+mkdir $FOLDER/$1
+touch $FOLDER/$1/blacklist.txt
+touch $FOLDER/$1/whitelist.txt
+mkdir $FOLDER/$1/mails
+touch $FOLDER/$1/mails/.gitkeep
+
+# TODO : generate asymetric keys and certificates.
