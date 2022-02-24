@@ -5,6 +5,7 @@ from ninas import console
 
 # Responses identifiers.
 RES_HELLO_SERVER = PAYLOAD_RESPONSE_MASK + 10
+RES_MAILFROM = PAYLOAD_RESPONSE_MASK + 20
 
 
 # Base response class used for every
@@ -17,7 +18,8 @@ class Response(NetworkBasePayload):
     @staticmethod
     def classIdentifierCorrespondence(): 
         return {
-            RES_HELLO_SERVER: HelloServerResponse
+            RES_HELLO_SERVER: HelloServerResponse,
+            RES_MAILFROM : MailFromResponse
         }
 
 
@@ -31,7 +33,7 @@ class EmptyResponse(Response):
         self.type = type
         
     # Handle the current request.
-    def handle(self, mail=None): pass
+    def handle(self): pass
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
@@ -60,8 +62,25 @@ class HelloServerResponse(EmptyResponse):
     def __init__(self, socket):
         super().__init__(socket, RES_HELLO_SERVER)
         
-    def handle(self, mail=None):
+    def handle(self):
         console.debug("Handling HelloServerResponse")
+
+
+class MailFromResponse(EmptyResponse):
+
+    def __init__(self, socket):
+        super().__init__(socket, RES_MAILFROM)
+
+
+    def handle(self): 
+        console.debug("MAILFROMRESPONSE handle")
+
+
+
+
+
+
+
 
 
 

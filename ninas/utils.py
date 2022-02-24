@@ -35,7 +35,7 @@ class MalformedArrayError(NinasRuntimeError): ...
 # Gets updated each time the server receives some info
 class MailInfo(object):
     __slots__ = [
-        'server_domain_name', 'client_domain_name', 'user_name'
+        'src_server_domain_name', 'src_domain_name', 'dst_domain_name' ,'src_user_name', 'dst_user_name', 'sent_date', 'subject', 'payload'
     ]
 
     # Updates the value of an attribute 

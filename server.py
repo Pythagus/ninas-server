@@ -1,4 +1,4 @@
-from ninas.responses import HelloServerResponse
+from ninas.responses import HelloServerResponse, MailFromResponse
 from ninas.requests import HelloServerRequest, MailFromRequest
 from ninas.utils import NinasRuntimeError, MailInfo
 from ninas.network import NetworkTools
@@ -19,7 +19,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer): pa
 # Main class used to handle
 # every incoming payload like
 # requests and responses. This
-# is thread-programming.
+# is thread-programming
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def handle(self):
 
@@ -41,8 +41,13 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if obj_type == HelloServerRequest:
                 HelloServerResponse(obj.socket).send()
             elif obj_type == MailFromRequest:
-                console.warn("What should we do after a MailFromRequest ?") # TODO
                 mail.debug()
+                MailFromResponse(obj.socket).send()
+                # TODO : Send a MailFromResponse
+
+            # TODO : create blacklists/whitelists, check after the MAIL FROM
+            # TODO : Send the mail
+            # TODO : Check the signature of the mail
 
 
 

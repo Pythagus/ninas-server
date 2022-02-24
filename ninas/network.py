@@ -44,7 +44,7 @@ class NetworkBasePayload(object):
 
      # Handle the current request.
     @abstractmethod
-    def handle(self, mail=None): raise NotImplementedError
+    def handle(self): raise NotImplementedError
 
     # Send the current class over the
     # network using the serialize method.
