@@ -3,14 +3,14 @@ from ninas.utils import NList, NinasRuntimeError
 from ninas import console
 import socketserver
 import dns.resolver
-import re
 import time
+import re
 
 
 # Requests identifiers.
 REQ_HELLO_SERVER = PAYLOAD_REQUEST_MASK + 10
 REQ_HELLO_CLIENT = PAYLOAD_REQUEST_MASK + 11
-REQ_MAIL_USERS    = PAYLOAD_REQUEST_MASK + 20
+REQ_MAIL_USERS   = PAYLOAD_REQUEST_MASK + 20
 REQ_MAIL_PAYLOAD = PAYLOAD_REQUEST_MASK + 30
 
 
@@ -27,7 +27,7 @@ class Request(NetworkBasePayload, socketserver.BaseRequestHandler):
             REQ_HELLO_CLIENT: HelloRequest,
             REQ_HELLO_SERVER: HelloServerRequest,
             REQ_MAIL_USERS: MailUsersRequest,
-            REQ_MAIL_PAYLOAD : MailPayloadRequest
+            REQ_MAIL_PAYLOAD: MailPayloadRequest
         }
 
 
@@ -130,8 +130,8 @@ class HelloServerRequest(HelloRequest):
             
             console.debug("   SPF checked!")
 
-            mail.setMail('client_domain_name', self.client_domain_name)
-            mail.setMail('server_domain_name', self.server_domain_name)
+            mail.setAttr('src_domain_name', self.client_domain_name)
+            mail.setAttr('src_server_domain_name', self.server_domain_name)
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
@@ -178,7 +178,7 @@ class MailUsersRequest(Request):
             'type': REQ_MAIL_USERS,
             'src_user_name': self.src_user_name,
             'dst_user_name': self.dst_user_name,
-            'dst_domain_name' : self.dst_domain_name
+            'dst_domain_name': self.dst_domain_name
         }).toBytes()
         
     # Handle the current request.
@@ -186,10 +186,10 @@ class MailUsersRequest(Request):
         console.debug("Handling MailFromRequest")
         console.warn("HANDLE MAIL FROM")    
 
-        mail.setMail('src_user_name', self.src_user_name)
-        mail.setMail('dst_user_name', self.dst_user_name)
-        mail.setMail('dst_domain_name', self.dst_domain_name)
-        # TODO : check for the blacklist
+        mail.setAttr('src_user_name', self.src_user_name)
+        mail.setAttr('dst_user_name', self.dst_user_name)
+        mail.setAttr('dst_domain_name', self.dst_domain_name)
+        # TODO: check for the blacklist
 
 
 # Request to send the mail to the server
@@ -204,9 +204,9 @@ class MailPayloadRequest(object):
        self.payload_file_name = payload_file_name
 
     def handle(self, mail):
-        mail.setMail('sent_date', time.time())
-        mail.setMail('subject', self.subject)
-        mail.setMail('payload_file_name', self.payload_file_name)
+        mail.setAttr('sent_date', time.time())
+        mail.setAttr('subject', self.subject)
+        mail.setAttr('payload_file_name', self.payload_file_name)
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
@@ -215,8 +215,8 @@ class MailPayloadRequest(object):
         payload = mail_file.read()
         return NList({
             'type': REQ_MAIL_PAYLOAD,
-            'subject' : self.subject,
-            'payload' : payload,
+            'subject': self.subject,
+            'payload': payload,
         }).toBytes()
 
     # Convert bytes to current class
@@ -225,7 +225,7 @@ class MailPayloadRequest(object):
     def unserialize(socket, values):
         NList(values).mustContainKeys('type', 'subject', 'payload')
 
-        # TODO : figure out how to access the mail variable
+        # TODO: figure out how to access the mail variable
         file_name  = "../samples/maud@microsft.org/mails" 
 
         return MailUsersRequest(socket, 

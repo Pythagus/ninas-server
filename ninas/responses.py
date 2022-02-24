@@ -19,7 +19,7 @@ class Response(NetworkBasePayload):
     def classIdentifierCorrespondence(): 
         return {
             RES_HELLO_SERVER: HelloServerResponse,
-            RES_MAILFROM : MailFromResponse
+            RES_MAILFROM: MailFromResponse
         }
 
 
@@ -73,7 +73,7 @@ class MailFromResponse(EmptyResponse):
 
 
     def handle(self): 
-        console.debug("MAILFROMRESPONSE handle")
+        console.debug("Handling MailUsersResponse")
 
 
 

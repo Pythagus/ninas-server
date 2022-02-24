@@ -1,5 +1,5 @@
 from ninas.responses import HelloServerResponse, MailFromResponse
-from ninas.requests import HelloServerRequest, MailFromRequest
+from ninas.requests import HelloServerRequest, MailUsersRequest
 from ninas.utils import NinasRuntimeError, MailInfo
 from ninas.network import NetworkTools
 from ninas import console
@@ -40,7 +40,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             # The client first contact.
             if obj_type == HelloServerRequest:
                 HelloServerResponse(obj.socket).send()
-            elif obj_type == MailFromRequest:
+            elif obj_type == MailUsersRequest:
                 mail.debug()
                 MailFromResponse(obj.socket).send()
                 # TODO : Send a MailFromResponse

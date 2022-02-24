@@ -1,6 +1,6 @@
-import json
-import socket
 from ninas import console
+import json
+
 
 # Base NINAS runtime error.
 class NinasRuntimeError(RuntimeError): ...
@@ -35,21 +35,20 @@ class MalformedArrayError(NinasRuntimeError): ...
 # Gets updated each time the server receives some info
 class MailInfo(object):
     __slots__ = [
-        'src_server_domain_name', 'src_domain_name', 'dst_domain_name' ,'src_user_name', 'dst_user_name', 'sent_date', 'subject', 'payload'
+        'src_server_domain_name', 'src_domain_name', 'dst_domain_name' ,'src_user_name', 'dst_user_name', 
+        'sent_date', 'subject', 'payload'
     ]
 
     # Updates the value of an attribute 
     # which name is in "key"
-    def setMail(self, key, value):
+    def setAttr(self, key, value):
         setattr(self, key, value)
 
     #Prints the info that we have in the mail so far
     def debug(self):
         for attr in self.__slots__:
-            value = getattr(self, attr)
-            if value != None:
+            try:
+                value = getattr(self, attr)
                 console.debug("MAIL " + attr + " " + str(value))
-
-
-
-
+            except AttributeError:
+                pass
