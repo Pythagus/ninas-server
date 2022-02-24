@@ -8,6 +8,7 @@ import time
 import sys
 
 
+
 # Create the socket.
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind(('client.host', 0)) # For development purpose only
@@ -43,8 +44,6 @@ while True:
     elif obj_type == MailUsersResponse:
         MailPayloadRequest(sock, subject, time.time(), mail_file_name).send()
         break
-    elif obj_type == ErrorResponse:
-        sys.exit(1)
 
 print("Closing client...")
 sock.close()

@@ -1,6 +1,12 @@
 from colorama import Fore
+from sys import stderr
+
 
 DEBUG = True
+
+
+def error(message):
+    print(Fore.RED + str(message) + Fore.RESET, file=stderr)
 
 # Display a warning message and
 # stop the process.

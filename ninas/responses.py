@@ -1,3 +1,4 @@
+from genericpath import isfile
 from logging.config import RESET_ERROR
 from ninas.network import NetworkBasePayload, PAYLOAD_RESPONSE_MASK
 from ninas.utils import NList
@@ -76,7 +77,10 @@ class ErrorResponse(Response):
     # Handle the current request.
     def handle(self): 
         console.debug("Handling " + self.__class__.__name__)
-        console.warn(self.data)
+        console.error(self.data)
+        self.socket.close()
+        exit(1)
+
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
