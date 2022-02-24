@@ -17,7 +17,7 @@ print("     ╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝╚═�
 
 LINE_START = "\t>>> "
 
-print(colorama.Fore.BLUE + LINE_START + "Created by Damien Molina, Maud Pennetier and Elies Tali with " + colorama.Fore.MAGENTA + "♥\n")
+print(colorama.Fore.BLUE + LINE_START + "Created by Damien Molina, Maud Pennetier and Elies Tali with " + colorama.Fore.MAGENTA + "💝\n")
 
 
 print(colorama.Fore.RED + LINE_START + "You are logged as elies@dmolina.fr.")
