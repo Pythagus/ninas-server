@@ -18,6 +18,13 @@ sock.connect(('server.host', int(sys.argv[1])))
 hello = HelloServerRequest(sock, "ninas.client.host", "dmolina.fr")
 hello.send()
 
+# Get the arguments of the command line 
+dst_user_name , dst_domain_name = sys.argv[2].split("@")
+subject = sys.argv[3]
+mail_file_name = sys.argv[4]
+
+
+
 
 while True:
     obj = NetworkTools.receiveNetworkObject(sock)
@@ -32,6 +39,6 @@ while True:
     
     # The client first contact response.
     if obj_type == HelloServerResponse:
-        MailUsersRequest(sock, "elies", "maud", "microsoft.org").send()
+        MailUsersRequest(sock, "elies", dst_user_name, dst_domain_name).send()
     elif obj_type == MailUsersResponse:
-        MailPayloadRequest(sock, "SUJET DU MAIL", time.time(), "samples/mail.txt").send()
+        MailPayloadRequest(sock, subject, time.time(), mail_file_name).send()

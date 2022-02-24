@@ -1,3 +1,4 @@
+from genericpath import isdir
 from ninas.network import NetworkBasePayload, NetworkStringInterface, PAYLOAD_REQUEST_MASK
 from ninas.utils import NList, NinasRuntimeError
 from ninas import console
@@ -5,6 +6,7 @@ import socketserver
 import dns.resolver
 import time
 import re
+import os
 
 
 # Requests identifiers.
@@ -185,9 +187,17 @@ class MailUsersRequest(Request):
     def handle(self, mail):
         console.debug("Handling MailUsersRequest")
 
+
+
         mail.setAttr('src_user_name', self.src_user_name)
         mail.setAttr('dst_user_name', self.dst_user_name)
         mail.setAttr('dst_domain_name', self.dst_domain_name)
+    
+        user_directory = "samples/" + mail.fullDstAddr()
+
+        if not os.path.isdir(user_directory):
+            raise UserNotFoundError(user_directory)
+
         # TODO: check for the blacklist
 
 
@@ -271,4 +281,7 @@ class InvalidNinasSpfError(NinasRuntimeError):
 
 
 class MalformedNinasAddressError(NinasRuntimeError): ...
+
+
+class UserNotFoundError(NinasRuntimeError): ...
 
