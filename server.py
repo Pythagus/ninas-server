@@ -1,5 +1,5 @@
-from ninas.responses import HelloServerResponse, MailUsersResponse
-from ninas.requests import HelloServerRequest, MailUsersRequest
+from ninas.responses import HelloServerResponse, MailPayloadResponse, MailUsersResponse, ErrorResponse
+from ninas.requests import HelloServerRequest, MailUsersRequest, MailPayloadRequest, CriticalError
 from ninas.utils import NinasRuntimeError, MailInfo
 from ninas.network import NetworkTools
 from ninas import console
@@ -33,18 +33,28 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             # Try to handle the network object.
             try:
                 obj.handle(mail)
+            except CriticalError as e:
+                console.warn(e)
+                ErrorResponse(obj.socket, e.type, e.message).send()
+                break
             except NinasRuntimeError as e:
                 console.warn(e)
-                obj.close()
+                break
             
             # The client first contact.
             if obj_type == HelloServerRequest:
                 HelloServerResponse(obj.socket).send()
             elif obj_type == MailUsersRequest:
                 MailUsersResponse(obj.socket).send()
+            elif obj_type == MailPayloadRequest:
+                MailPayloadResponse(obj.socket).send()
+                break
 
             # TODO : create blacklists/whitelists, check after the MAIL FROM
             # TODO : Check the signature of the mail
+        
+        print("Closing server...")
+        self.request.close()
 
 
 

@@ -1,3 +1,4 @@
+from logging.config import RESET_ERROR
 from ninas.network import NetworkBasePayload, PAYLOAD_RESPONSE_MASK
 from ninas.utils import NList
 from ninas import console
@@ -6,6 +7,8 @@ from ninas import console
 # Responses identifiers.
 RES_HELLO_SERVER = PAYLOAD_RESPONSE_MASK + 10
 RES_MAIL_USERS   = PAYLOAD_RESPONSE_MASK + 20
+RES_MAIL_PAYLOAD = PAYLOAD_RESPONSE_MASK + 30
+RES_ERROR        = PAYLOAD_RESPONSE_MASK + 40
 
 
 # Base response class used for every
@@ -19,7 +22,9 @@ class Response(NetworkBasePayload):
     def classIdentifierCorrespondence(): 
         return {
             RES_HELLO_SERVER: HelloServerResponse,
-            RES_MAIL_USERS: MailUsersResponse
+            RES_MAIL_USERS: MailUsersResponse,
+            RES_MAIL_PAYLOAD: MailPayloadResponse,
+            RES_ERROR: ErrorResponse,
         }
 
 
@@ -57,6 +62,42 @@ class EmptyResponse(Response):
         
         return None
 
+
+# Response made when an error occured.
+class ErrorResponse(Response):
+    __slots__ = ['data', 'error_type']
+
+    # Initialize the response with the type.
+    def __init__(self, socket, error_type, data):
+        super().__init__(socket)
+        self.error_type = error_type
+        self.data = data
+        
+    # Handle the current request.
+    def handle(self): 
+        console.debug("Handling " + self.__class__.__name__)
+        console.warn(self.data)
+
+    # Convert the class attributes to 
+    # bytes to be sent over the network.
+    def serialize(self):
+        return NList({
+            'type': RES_ERROR,
+            'error_type': self.error_type,
+            'data': self.data
+        }).toBytes()
+
+    # Convert bytes to current class
+    # attributes.
+    @staticmethod
+    def unserialize(socket, values):
+        NList(values).mustContainKeys('type', 'error_type', 'data')
+        
+        return ErrorResponse(socket,
+            values['error_type'],
+            values['data'],
+        )
+    
         
 # Response sent after the first client
 # contact request.
@@ -70,3 +111,10 @@ class HelloServerResponse(EmptyResponse):
 class MailUsersResponse(EmptyResponse):
     def __init__(self, socket):
         super().__init__(socket, RES_MAIL_USERS)
+
+
+# Send an empty response to acknowledge
+# the sent mail payload.
+class MailPayloadResponse(EmptyResponse):
+    def __init__(self, socket):
+        super().__init__(socket, RES_MAIL_PAYLOAD)

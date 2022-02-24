@@ -1,5 +1,5 @@
 from ninas.requests import HelloServerRequest, MailUsersRequest, MailPayloadRequest
-from ninas.responses import HelloServerResponse, MailUsersResponse
+from ninas.responses import HelloServerResponse, MailUsersResponse, ErrorResponse
 from ninas.utils import NinasRuntimeError
 from ninas.network import NetworkTools
 from ninas import console
@@ -35,10 +35,16 @@ while True:
         obj.handle()
     except NinasRuntimeError as e:
         console.warn(e)
-        obj.close()
+        break
     
     # The client first contact response.
     if obj_type == HelloServerResponse:
         MailUsersRequest(sock, "elies", dst_user_name, dst_domain_name).send()
     elif obj_type == MailUsersResponse:
         MailPayloadRequest(sock, subject, time.time(), mail_file_name).send()
+        break
+    elif obj_type == ErrorResponse:
+        break
+
+print("Closing client...")
+sock.close()

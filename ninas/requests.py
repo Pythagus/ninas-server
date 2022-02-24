@@ -15,6 +15,9 @@ REQ_HELLO_CLIENT = PAYLOAD_REQUEST_MASK + 11
 REQ_MAIL_USERS   = PAYLOAD_REQUEST_MASK + 20
 REQ_MAIL_PAYLOAD = PAYLOAD_REQUEST_MASK + 30
 
+# Error identifiers.
+ERR_USER_NOT_FOUND = 404
+
 
 # Base request class used for
 # every network requests.
@@ -196,7 +199,7 @@ class MailUsersRequest(Request):
         user_directory = "samples/" + mail.fullDstAddr()
 
         if not os.path.isdir(user_directory):
-            raise UserNotFoundError(user_directory)
+            raise CriticalError(ERR_USER_NOT_FOUND, "User " + mail.fullDstAddr() + " not found")
 
         # TODO: check for the blacklist
 
@@ -283,5 +286,10 @@ class InvalidNinasSpfError(NinasRuntimeError):
 class MalformedNinasAddressError(NinasRuntimeError): ...
 
 
-class UserNotFoundError(NinasRuntimeError): ...
+class CriticalError(NinasRuntimeError): 
+    __slots__ = ['type', 'message']
+    
+    def __init__(self, type, message):
+        self.type = type
+        self.message = message
 
