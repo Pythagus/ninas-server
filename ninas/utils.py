@@ -36,13 +36,21 @@ class MalformedArrayError(NinasRuntimeError): ...
 class MailInfo(object):
     __slots__ = [
         'src_server_domain_name', 'src_domain_name', 'dst_domain_name' ,'src_user_name', 'dst_user_name', 
-        'sent_date', 'subject', 'payload'
+        'sent_date', 'received_date', 'subject', 'payload'
     ]
 
     # Updates the value of an attribute 
     # which name is in "key"
     def setAttr(self, key, value):
         setattr(self, key, value)
+        
+    # Get the full client source email address.
+    def fullSrcAddr(self):
+        return self.src_user_name + "@" + self.src_domain_name
+        
+    # Get the full client destination email address.
+    def fullDstAddr(self):
+        return self.dst_user_name + "@" + self.dst_domain_name
 
     #Prints the info that we have in the mail so far
     def debug(self):

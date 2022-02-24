@@ -5,7 +5,7 @@ from ninas import console
 
 # Responses identifiers.
 RES_HELLO_SERVER = PAYLOAD_RESPONSE_MASK + 10
-RES_MAILFROM = PAYLOAD_RESPONSE_MASK + 20
+RES_MAIL_USERS   = PAYLOAD_RESPONSE_MASK + 20
 
 
 # Base response class used for every
@@ -19,7 +19,7 @@ class Response(NetworkBasePayload):
     def classIdentifierCorrespondence(): 
         return {
             RES_HELLO_SERVER: HelloServerResponse,
-            RES_MAILFROM: MailFromResponse
+            RES_MAIL_USERS: MailUsersResponse
         }
 
 
@@ -33,7 +33,8 @@ class EmptyResponse(Response):
         self.type = type
         
     # Handle the current request.
-    def handle(self): pass
+    def handle(self): 
+        console.debug("Handling " + self.__class__.__name__)
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
@@ -47,9 +48,10 @@ class EmptyResponse(Response):
     @staticmethod
     def unserialize(socket, values):
         NList(values).mustContainKeys('type')
+        
         class_names = Response.classIdentifierCorrespondence()
+        
         type = values['type']
-
         if type in class_names:
             return class_names[type](socket)
         
@@ -61,29 +63,10 @@ class EmptyResponse(Response):
 class HelloServerResponse(EmptyResponse):
     def __init__(self, socket):
         super().__init__(socket, RES_HELLO_SERVER)
-        
-    def handle(self):
-        console.debug("Handling HelloServerResponse")
 
 
-class MailFromResponse(EmptyResponse):
-
+# Send an empty response to acknowledge
+# the MAIL_USERS request.
+class MailUsersResponse(EmptyResponse):
     def __init__(self, socket):
-        super().__init__(socket, RES_MAILFROM)
-
-
-    def handle(self): 
-        console.debug("Handling MailUsersResponse")
-
-
-
-
-
-
-
-
-
-
-
-
-
+        super().__init__(socket, RES_MAIL_USERS)

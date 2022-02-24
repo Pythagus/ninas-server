@@ -1,5 +1,6 @@
-from ninas.utils import MalformedArrayError
+from ninas.utils import MalformedArrayError, NinasRuntimeError
 from abc import abstractmethod
+from ninas import console
 import json
 
 PAYLOAD_MASK_RANGE    = 10000
@@ -49,6 +50,7 @@ class NetworkBasePayload(object):
     # Send the current class over the
     # network using the serialize method.
     def send(self):
+        console.debug("Sending " + self.__class__.__name__)
         packet = NetworkPacket(self.serialize())
         self.socket.send(packet.serialize())
 
@@ -61,7 +63,7 @@ class NetworkBasePayload(object):
 # Base packet class used to encapsulate
 # every network payload.
 class NetworkPacket(object):
-    SIZE_LENGTH = 128
+    SIZE_LENGTH = 64
 
     __slots__ = [
         'payload', 'size'
@@ -73,6 +75,12 @@ class NetworkPacket(object):
 
     def serialize(self):
         size = str(self.size)
+        
+        # Check whether the packet length is correct.
+        if len(size) > NetworkPacket.SIZE_LENGTH:
+            # TODO fragment packet if too big
+            raise NinasRuntimeError("Packet length too big")
+        
         size = ("0" * (NetworkPacket.SIZE_LENGTH - len(size))) + size
 
         return bytes(size, "utf-8") + self.payload 

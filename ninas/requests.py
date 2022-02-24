@@ -183,8 +183,7 @@ class MailUsersRequest(Request):
         
     # Handle the current request.
     def handle(self, mail):
-        console.debug("Handling MailFromRequest")
-        console.warn("HANDLE MAIL FROM")    
+        console.debug("Handling MailUsersRequest")
 
         mail.setAttr('src_user_name', self.src_user_name)
         mail.setAttr('dst_user_name', self.dst_user_name)
@@ -193,29 +192,30 @@ class MailUsersRequest(Request):
 
 
 # Request to send the mail to the server
-class MailPayloadRequest(object):
+class MailPayloadRequest(Request):
     __slots__ = [
-        'sent_date', 'subject', 'payload_file_name'
+        'sent_date', 'subject', 'payload_file_name', 'payload'
     ]
 
-    def __init__(self, sent_date, subject, payload_file_name):
-       self.sent_date = sent_date
-       self.subject = subject
-       self.payload_file_name = payload_file_name
-
-    def handle(self, mail):
-        mail.setAttr('sent_date', time.time())
-        mail.setAttr('subject', self.subject)
-        mail.setAttr('payload_file_name', self.payload_file_name)
+    def __init__(self, socket, subject, sent_date, payload_file_name=None):
+        super().__init__(socket)
+        
+        self.subject = subject
+        self.payload_file_name = payload_file_name
+        self.sent_date = sent_date
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
     def serialize(self):
-        mail_file = open(self.payload_file_name, "r")
-        payload = mail_file.read()
+        # Get the mail content.
+        payload = ""
+        with open(self.payload_file_name, "r") as f:
+            payload = f.read()
+        
         return NList({
             'type': REQ_MAIL_PAYLOAD,
             'subject': self.subject,
+            'sent_date': self.sent_date,
             'payload': payload,
         }).toBytes()
 
@@ -223,16 +223,40 @@ class MailPayloadRequest(object):
     # attributes.
     @staticmethod
     def unserialize(socket, values):
-        NList(values).mustContainKeys('type', 'subject', 'payload')
+        NList(values).mustContainKeys('type', 'subject', 'payload', 'sent_date')
 
-        # TODO: figure out how to access the mail variable
-        file_name  = "../samples/maud@microsft.org/mails" 
-
-        return MailUsersRequest(socket, 
-            values['user_name'].lower(), 
+        request = MailPayloadRequest(socket, 
+            values['subject'], 
+            values['sent_date'], 
         )
+        
+        request.payload = values['payload']
 
-
+        return request
+    
+    # Handle the current request.
+    def handle(self, mail):
+        console.debug("Handling MailPayloadRequest")
+        
+        # Update the mail info instance.
+        mail.setAttr('subject', self.subject)
+        mail.setAttr('sent_date', self.sent_date)
+        mail.setAttr('received_date', time.time())
+        
+        # Prepare the destination file.
+        self.payload_file_name = "samples/" + mail.fullDstAddr() + "/mails/" + mail.fullSrcAddr() + "_" + str(mail.sent_date) + ".mail"
+        
+        # Put the email content into the file.
+        with open(self.payload_file_name, 'w') as f:
+            f.write("FROM: " + mail.fullSrcAddr() + "\n")
+            f.write("TO: " + mail.fullDstAddr() + "\n")
+            f.write("SUBJECT: " + mail.subject + "\n")
+            f.write("SENT DATE: " + str(mail.sent_date) + "\n")
+            f.write("RECEIVED DATE: " + str(mail.received_date) + "\n")
+            f.write("CONTENT:\n")
+            f.write(self.payload)
+        
+        
 # Exception raised when no valid
 # SPF records were found in the
 # DNS records.

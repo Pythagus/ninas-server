@@ -1,4 +1,4 @@
-from ninas.responses import HelloServerResponse, MailFromResponse
+from ninas.responses import HelloServerResponse, MailUsersResponse
 from ninas.requests import HelloServerRequest, MailUsersRequest
 from ninas.utils import NinasRuntimeError, MailInfo
 from ninas.network import NetworkTools
@@ -41,12 +41,9 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             if obj_type == HelloServerRequest:
                 HelloServerResponse(obj.socket).send()
             elif obj_type == MailUsersRequest:
-                mail.debug()
-                MailFromResponse(obj.socket).send()
-                # TODO : Send a MailFromResponse
+                MailUsersResponse(obj.socket).send()
 
             # TODO : create blacklists/whitelists, check after the MAIL FROM
-            # TODO : Send the mail
             # TODO : Check the signature of the mail
 
 

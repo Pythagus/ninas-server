@@ -1,9 +1,10 @@
-from ninas.responses import HelloServerResponse
-from ninas.requests import HelloServerRequest, MailUsersRequest
+from ninas.requests import HelloServerRequest, MailUsersRequest, MailPayloadRequest
+from ninas.responses import HelloServerResponse, MailUsersResponse
 from ninas.utils import NinasRuntimeError
 from ninas.network import NetworkTools
 from ninas import console
 import socket
+import time
 import sys
 
 
@@ -11,7 +12,6 @@ import sys
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind(('client.host', 0)) # For development purpose only
 sock.connect(('server.host', int(sys.argv[1])))
-
 
 
 # Create and send the HELLO request.
@@ -33,3 +33,5 @@ while True:
     # The client first contact response.
     if obj_type == HelloServerResponse:
         MailUsersRequest(sock, "elies", "maud", "microsoft.org").send()
+    elif obj_type == MailUsersResponse:
+        MailPayloadRequest(sock, "SUJET DU MAIL", time.time(), "samples/mail.txt").send()
