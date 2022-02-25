@@ -1,8 +1,10 @@
-
+# Error enumerate object with identifiers.
 class Err(object):
-    USER_NOT_FOUND   = 404
-    DOMAIN_NOT_FOUND = 405
-    DOMAIN_SPF       = 406
+    USER_NOT_FOUND        = 404
+    DOMAIN_NOT_FOUND      = 405
+    DOMAIN_SPF            = 406
+    INVALID_NINAS_DOMAIN  = 407
+    INVALID_EMAIL_ADDRESS = 408
     
 # Base NINAS runtime error.
 class NinasRuntimeError(RuntimeError): ...

@@ -1,7 +1,8 @@
 from ninas.responses import HelloServerResponse, MailPayloadResponse, MailUsersResponse, ErrorResponse
-from ninas.requests import HelloServerRequest, MailUsersRequest, MailPayloadRequest, CriticalError
-from ninas.utils import NinasRuntimeError, MailInfo
+from ninas.requests import HelloServerRequest, MailUsersRequest, MailPayloadRequest
+from ninas.errors import CriticalError, NinasRuntimeError
 from ninas.network import NetworkTools
+from ninas.utils import MailInfo
 from ninas import console
 import socketserver
 import threading

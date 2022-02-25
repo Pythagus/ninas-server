@@ -1,6 +1,7 @@
 from ninas.requests import HelloServerRequest, MailUsersRequest, MailPayloadRequest
 from ninas.responses import HelloServerResponse, MailUsersResponse
 from ninas.utils import NinasRuntimeError
+from ninas.security import EmailAddress
 from ninas.network import NetworkTools
 from ninas import console
 import socket
@@ -19,13 +20,13 @@ sock.connect(('server.host', int(sys.argv[1])))
 hello = HelloServerRequest(sock, "ninas.client.host", "dmolina.fr")
 hello.send()
 
-# Get the arguments of the command line 
-dst_user_name , dst_domain_name = sys.argv[2].split("@")
+# Get the arguments of the command line
+email = sys.argv[2]
+EmailAddress.assertValidAddress(email)
+dst_user_name , dst_domain_name = email.split("@")
+
 subject = sys.argv[3]
 mail_file_name = sys.argv[4]
-
-
-
 
 while True:
     obj = NetworkTools.receiveNetworkObject(sock)

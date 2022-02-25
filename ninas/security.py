@@ -1,29 +1,51 @@
-from ninas.error import CriticalError, Err
+from ninas.errors import CriticalError, Err
 from ninas import console
 import dns.resolver
 import re
+import os
 
 
-class Address(object):
-    SERVER_ADDR_START = 'ninas.'
+# Starting subdomain of a NINAS server.
+SERVER_ADDR_START = 'ninas.'
+
+
+# Check whether the given NINAS server
+# address is valid.
+def getNinasServerAddress(address):
+    if not address.startswith(SERVER_ADDR_START):
+        raise MalformedAddressError(
+            Err.INVALID_NINAS_DOMAIN, "NINAS server address must start with '" + SERVER_ADDR_START + "'"
+        )
+
+    return address[len(SERVER_ADDR_START):]
+
+
+# Email address class utilities.
+class EmailAddress(object):
     
-    # Check whether the given NINAS server
-    # address is valid.
+    # Check whether the user exists
+    # in the file system.
     @staticmethod
-    def getNinasServer(address):
-        if not address.startswith(Address.SERVER_ADDR_START):
-            raise MalformedNinasAddressError(
-                "NINAS server address must start with '" + Address.SERVER_ADDR_START + "'"
+    def assertUserExists(email):
+        user_directory = "samples/" + email
+        if not os.path.isdir(user_directory):
+            raise CriticalError(
+                Err.USER_NOT_FOUND, "User " + email + " not found"
             )
-
-        return address[len(Address.SERVER_ADDR_START):]
     
     # Check whether the given email address
     # is valid.
     @staticmethod
-    def checkEmailAddress(address):
-        # TODO
-        pass
+    def assertValidAddress(address):
+        if not re.match('^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$', address):
+            raise MalformedAddressError(
+                Err.INVALID_EMAIL_ADDRESS, "Invalid email address " + address
+            )
+     
+    # Join the user name and the domain name.   
+    @staticmethod
+    def join(user_name, domain):
+        return user_name + "@" + domain
 
 
 # Manage the SPF records in the DNS.
@@ -75,4 +97,4 @@ class SPF(object):
 class InvalidNinasSpfError(CriticalError): ...
 
 # The given address is not NINAS-like.
-class MalformedNinasAddressError(CriticalError): ...
+class MalformedAddressError(CriticalError): ...

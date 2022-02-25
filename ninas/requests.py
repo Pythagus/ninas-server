@@ -1,11 +1,9 @@
+from ninas.security import SPF, EmailAddress, getNinasServerAddress
 from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
-from ninas.error import CriticalError, Err
-from ninas.security import SPF, Address
 from ninas.utils import NList
 from ninas import console
 import socketserver
 import time
-import os
 
 
 # Requests identifiers.
@@ -91,7 +89,7 @@ class HelloServerRequest(HelloRequest):
     def handle(self, mail):
         console.debug("Handling HelloServerRequest")
         
-        server_name = Address.getNinasServer(self.server_domain_name)
+        server_name = getNinasServerAddress(self.server_domain_name)
 
         # If the domain name doesn't match the
         # server name, we need to verify the SPF
@@ -124,7 +122,7 @@ class MailUsersRequest(Request):
         super().__init__(socket)
 
         self.src_user_name   = src_user_name
-        self.dst_user_name= dst_user_name
+        self.dst_user_name   = dst_user_name
         self.dst_domain_name = dst_domain_name
         
     # Convert bytes to current class
@@ -153,14 +151,17 @@ class MailUsersRequest(Request):
     def handle(self, mail):
         console.debug("Handling MailUsersRequest")
 
+        # Set the mail received info.
         mail.setAttr('src_user_name', self.src_user_name)
         mail.setAttr('dst_user_name', self.dst_user_name)
         mail.setAttr('dst_domain_name', self.dst_domain_name)
+        
+        # Check the addresses validity.
+        EmailAddress.assertValidAddress(mail.fullSrcAddr())
+        EmailAddress.assertValidAddress(mail.fullDstAddr())
     
         # Check whether the user exists or not.
-        user_directory = "samples/" + mail.fullDstAddr()
-        if not os.path.isdir(user_directory):
-            raise CriticalError(Err.USER_NOT_FOUND, "User " + mail.fullDstAddr() + " not found")
+        EmailAddress.assertUserExists(mail.fullDstAddr())
 
         # TODO : check for the blacklist
 

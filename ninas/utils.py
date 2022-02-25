@@ -1,4 +1,5 @@
-from ninas.error import NinasRuntimeError
+from ninas.errors import NinasRuntimeError
+from ninas.security import EmailAddress
 from ninas import console
 import json    
     
@@ -43,11 +44,11 @@ class MailInfo(object):
         
     # Get the full client source email address.
     def fullSrcAddr(self):
-        return self.src_user_name + "@" + self.src_domain_name
+        return EmailAddress.join(self.src_user_name, self.src_domain_name)
         
     # Get the full client destination email address.
     def fullDstAddr(self):
-        return self.dst_user_name + "@" + self.dst_domain_name
+        return EmailAddress.join(self.dst_user_name, self.dst_domain_name)
 
     #Prints the info that we have in the mail so far
     def debug(self):
