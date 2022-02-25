@@ -1,11 +1,10 @@
-from genericpath import isdir
-from ninas.network import NetworkBasePayload, NetworkStringInterface, PAYLOAD_REQUEST_MASK
-from ninas.utils import NList, NinasRuntimeError
+from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
+from ninas.error import CriticalError, Err
+from ninas.security import SPF, Address
+from ninas.utils import NList
 from ninas import console
 import socketserver
-import dns.resolver
 import time
-import re
 import os
 
 
@@ -14,9 +13,6 @@ REQ_HELLO_SERVER = PAYLOAD_REQUEST_MASK + 10
 REQ_HELLO_CLIENT = PAYLOAD_REQUEST_MASK + 11
 REQ_MAIL_USERS   = PAYLOAD_REQUEST_MASK + 20
 REQ_MAIL_PAYLOAD = PAYLOAD_REQUEST_MASK + 30
-
-# Error identifiers.
-ERR_USER_NOT_FOUND = 404
 
 
 # Base request class used for
@@ -95,46 +91,13 @@ class HelloServerRequest(HelloRequest):
     def handle(self, mail):
         console.debug("Handling HelloServerRequest")
         
-        if not self.server_domain_name.startswith(NetworkStringInterface.NINAS_ADDR_START):
-            raise MalformedNinasAddressError(
-                "NINAS server address must be like '" + NetworkStringInterface.NINAS_ADDR_START + ".domain.ext'"
-            )
-
-        server_name = self.server_domain_name[len(NetworkStringInterface.NINAS_ADDR_START):]
+        server_name = Address.getNinasServer(self.server_domain_name)
 
         # If the domain name doesn't match the
         # server name, we need to verify the SPF
         # field in the DNS records.
         if server_name != self.client_domain_name:
-            console.debug("   Checking SPF records for " + str(self.client_domain_name) + "...")
-            
-            # Check the NINAS.spf entry if there's any.
-            answers = dns.resolver.query(self.client_domain_name, 'TXT')
-
-            ip4 = []
-            ip6 = []
-            for _record in answers:
-                # Remove the '"' from the DNS record.
-                record = str(_record)[1:-1]
-
-                # If It's a NINAS.spf record.
-                if str(record).startswith(NetworkStringInterface.NINAS_SPF_VALUE):
-                    # Check ip6 field.
-                    ip6_field = re.findall('ip6=[0-9:a-fA-F]+', record)
-                    if len(ip6_field) > 0:
-                        ip6.append(ip6_field[0][len('ip6='):])
-                        
-                    # Check ip4 field.
-                    ip4_field = re.findall('ip4=[0-9.]+', record)
-                    if len(ip4_field) > 0:
-                        ip4.append(ip4_field[0][len('ip4='):])
-
-            # If no matching IP was found.
-            if self.ip_addr_dst not in ip4 and self.ip_addr_dst not in ip6:
-                raise InvalidNinasSpfError(self.socket)
-            
-            console.debug("   SPF checked!")
-
+            SPF.check(self.client_domain_name, self.ip_addr_dst)
             mail.setAttr('src_domain_name', self.client_domain_name)
             mail.setAttr('src_server_domain_name', self.server_domain_name)
 
@@ -190,18 +153,16 @@ class MailUsersRequest(Request):
     def handle(self, mail):
         console.debug("Handling MailUsersRequest")
 
-
-
         mail.setAttr('src_user_name', self.src_user_name)
         mail.setAttr('dst_user_name', self.dst_user_name)
         mail.setAttr('dst_domain_name', self.dst_domain_name)
     
+        # Check whether the user exists or not.
         user_directory = "samples/" + mail.fullDstAddr()
-
         if not os.path.isdir(user_directory):
-            raise CriticalError(ERR_USER_NOT_FOUND, "User " + mail.fullDstAddr() + " not found")
+            raise CriticalError(Err.USER_NOT_FOUND, "User " + mail.fullDstAddr() + " not found")
 
-        # TODO: check for the blacklist
+        # TODO : check for the blacklist
 
 
 # Request to send the mail to the server
@@ -268,28 +229,3 @@ class MailPayloadRequest(Request):
             f.write("RECEIVED DATE: " + str(mail.received_date) + "\n")
             f.write("CONTENT:\n")
             f.write(self.payload)
-        
-        
-# Exception raised when no valid
-# SPF records were found in the
-# DNS records.
-class InvalidNinasSpfError(NinasRuntimeError): 
-    __slots__ = [
-        'socket'
-    ]
-
-    def __init__(self, socket, *args: object):
-        super().__init__(*args)
-        self.socket = socket
-
-
-class MalformedNinasAddressError(NinasRuntimeError): ...
-
-
-class CriticalError(NinasRuntimeError): 
-    __slots__ = ['type', 'message']
-    
-    def __init__(self, type, message):
-        self.type = type
-        self.message = message
-

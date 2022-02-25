@@ -5,11 +5,11 @@ from sys import stderr
 DEBUG = True
 
 
+# Display an error message.
 def error(message):
     print(Fore.RED + str(message) + Fore.RESET, file=stderr)
 
-# Display a warning message and
-# stop the process.
+# Display a warning message.
 def warn(message):
     print(Fore.YELLOW + str(message) + Fore.RESET)
 

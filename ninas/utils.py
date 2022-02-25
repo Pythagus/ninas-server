@@ -1,10 +1,7 @@
+from ninas.error import NinasRuntimeError
 from ninas import console
-import json
-
-
-# Base NINAS runtime error.
-class NinasRuntimeError(RuntimeError): ...
-
+import json    
+    
 
 # Base class to manage NINAS List
 # and add useful tools.

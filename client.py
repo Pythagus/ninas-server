@@ -1,5 +1,5 @@
 from ninas.requests import HelloServerRequest, MailUsersRequest, MailPayloadRequest
-from ninas.responses import HelloServerResponse, MailUsersResponse, ErrorResponse
+from ninas.responses import HelloServerResponse, MailUsersResponse
 from ninas.utils import NinasRuntimeError
 from ninas.network import NetworkTools
 from ninas import console

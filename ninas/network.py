@@ -8,13 +8,6 @@ PAYLOAD_REQUEST_MASK  = 10000
 PAYLOAD_RESPONSE_MASK = PAYLOAD_REQUEST_MASK + PAYLOAD_MASK_RANGE
 
 
-# Centralizing the whole NINAS
-# constant string values.
-class NetworkStringInterface(object):
-    NINAS_SPF_VALUE = 'v=NINAS.spf'
-    NINAS_ADDR_START = 'ninas.'
-
-
 # Base network class used in every
 # network objects.
 class NetworkBasePayload(object):
