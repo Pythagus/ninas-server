@@ -17,4 +17,4 @@ def warn(message):
 # debug mode is enabled.
 def debug(message):
     if DEBUG:
-        print(message)
+        print(str(message))

@@ -28,8 +28,12 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         print("CONNECTION FROM : " + str(self.client_address))
 
         while True:
-            obj = NetworkTools.receiveNetworkObject(self.request)
-            obj_type = type(obj)
+            try:
+                obj = NetworkTools.receiveNetworkObject(self.request)
+                obj_type = type(obj)
+            except ConnectionResetError as e:
+                console.warn("Connection reset by peer")
+                break
             
             # Try to handle the network object.
             try:
