@@ -1,5 +1,5 @@
 from ninas.errors import NinasRuntimeError
-from ninas.security import EmailAddress
+from ninas import security
 from ninas import console
 import json    
     
@@ -22,6 +22,20 @@ class NList(object):
     # Convert the given 
     def toBytes(self, encoding="utf-8"):
         return bytes(json.dumps(self.arr), encoding)
+    
+    # Open a file and put every line into
+    # an array.
+    @staticmethod
+    def fromFile(file_name):
+        try:
+            content = []
+            with open(file_name, 'r') as f:
+                for line in f:
+                    content.append(line.rstrip())
+            
+            return content
+        except:
+            return None
 
 
 # Exception raised when a malformed
@@ -44,11 +58,11 @@ class MailInfo(object):
         
     # Get the full client source email address.
     def fullSrcAddr(self):
-        return EmailAddress.join(self.src_user_name, self.src_domain_name)
+        return security.EmailAddress.join(self.src_user_name, self.src_domain_name)
         
     # Get the full client destination email address.
     def fullDstAddr(self):
-        return EmailAddress.join(self.dst_user_name, self.dst_domain_name)
+        return security.EmailAddress.join(self.dst_user_name, self.dst_domain_name)
 
     #Prints the info that we have in the mail so far
     def debug(self):
