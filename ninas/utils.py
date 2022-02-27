@@ -22,8 +22,19 @@ class NList(object):
     # Convert the given 
     def toBytes(self, encoding="utf-8"):
         return bytes(json.dumps(self.arr), encoding)
-
-
+    
+    # Read a JSON file and return the content
+    # as a dictionnary.
+    @staticmethod
+    def jsonFromFile(file_name):
+        try:
+            with open(file_name, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            console.debug(e)
+            return None
+        
+        
 # Exception raised when a malformed
 # payload was received.
 class MalformedArrayError(NinasRuntimeError): ...
