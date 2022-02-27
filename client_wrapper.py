@@ -3,6 +3,17 @@ import colorama
 from colorama.initialise import colorama_text
 import tempfile
 import os
+from ninas.requests import HelloServerRequest, MailUsersRequest, MailPayloadRequest
+from ninas.responses import HelloServerResponse, MailUsersResponse
+from ninas.utils import NinasRuntimeError
+from ninas.security import EmailAddress
+from ninas.network import NetworkTools
+from ninas import console
+import socket
+import time
+import sys
+
+
 
 colorama.init()
 
@@ -40,11 +51,12 @@ with tempfile.NamedTemporaryFile(delete=False) as f:
 
 
 port = sys.argv[1]
-status = os.system("python3 client.py " + port + " " + dst_email_addr + " '" + subject + "' " + file_name  + " > /dev/null")
+status = os.system("python3 client.py " + port + " " + dst_email_addr + " '" + subject + "' " + file_name)
 
-print()
 
 if status == 0:
     print(colorama.Fore.BLUE + LINE_START + "Thank you for using our mail service, see you !")
 else:
     print("Something went wrong")
+
+
