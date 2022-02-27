@@ -22,20 +22,6 @@ class NList(object):
     # Convert the given 
     def toBytes(self, encoding="utf-8"):
         return bytes(json.dumps(self.arr), encoding)
-    
-    # Open a file and put every line into
-    # an array.
-    @staticmethod
-    def fromFile(file_name):
-        try:
-            content = []
-            with open(file_name, 'r') as f:
-                for line in f:
-                    content.append(line.rstrip())
-            
-            return content
-        except:
-            return None
 
 
 # Exception raised when a malformed
