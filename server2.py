@@ -9,12 +9,28 @@ import socketserver
 import threading
 import sys
 import socket
+import ssl
 
 # Current server data.
 HOST, PORT = sys.argv[1], int(sys.argv[2])
 
 # Base threaded server class.
-class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer): pass
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer): 
+    def __init__(self, server_address, RequestHandlerClass):
+
+        super().__init__(server_address, RequestHandlerClass, False)
+
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.verify_mode = ssl.CERT_REQUIRED
+        context.load_cert_chain('./keys/' + HOST + '/cert.pem', './keys/' + HOST + '/key.pem')
+        context.load_verify_locations(cafile = './keys/demoCA/cacert.pem')
+
+        self.socket = context.wrap_socket(self.socket, server_side=True)
+        self.socket.bind((HOST, PORT))
+        self.socket.listen(5)
+
+
+
 
 
 # Main class used to handle
@@ -51,14 +67,21 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def connectToServer(self, mail):
         mail.setAttr('src_server_domain_name', HOST)
 
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context.load_cert_chain('./keys/' + HOST + '/cert.pem', './keys/' + HOST + '/key.pem')
+        context.load_verify_locations(cafile = './keys/demoCA/cacert.pem')
 
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        ssock = context.wrap_socket(sock,server_side=False,server_hostname='server.host')
+        ssock.bind((HOST, 0))
+        try:
+            ssock.connect(('server.host', 8000))
+        except ssl.SSLCertVerificationError as e:
+            console.error("Error while establishing TLS connexion" + str(e))
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.bind(('client.host', 0))
-        sock.connect(('server.host', int(sys.argv[2])))
-        self.sock = sock
-        # Create and send the HELLO request.
-        hello = HelloServerRequest(sock, "ninas.client.host", "dmolina.fr")
+        self.sock = ssock
+
+        hello = HelloServerRequest(self.sock, "ninas.client.host", "dmolina.fr")
         hello.send()
 
 
