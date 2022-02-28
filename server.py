@@ -3,6 +3,7 @@ from ninas.requests import HelloServerRequest, MailUsersRequest, MailPayloadRequ
 from ninas.errors import CriticalError, NinasRuntimeError
 from ninas.network import NetworkTools
 from ninas.utils import MailInfo
+from ninas.checks import Check
 from ninas import console
 import socketserver
 import threading
@@ -10,7 +11,7 @@ import sys
 
 
 # Current server data.
-HOST, PORT = "server.host", int(sys.argv[1])
+HOST, PORT = "127.0.0.0", int(sys.argv[1])
 
 
 # Base threaded server class.
@@ -56,6 +57,10 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 break
 
             # TODO : create blacklists/whitelists, check after the MAIL FROM
+            # whitelist first
+            mail_addr = MailInfo.fullSrcAddr(mail)
+            Check.completeCheck(mail_addr)
+
             # TODO : Check the signature of the mail
         
         print("Closing server...")

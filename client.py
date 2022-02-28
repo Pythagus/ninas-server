@@ -12,7 +12,7 @@ import sys
 
 # Create the socket.
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.bind(('client.host', 0)) # For development purpose only
+sock.bind(('127.0.0.0', 20002)) # For development purpose only
 sock.connect(('server.host', int(sys.argv[1])))
 
 
