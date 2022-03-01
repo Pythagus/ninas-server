@@ -1,8 +1,7 @@
-from ninas.errors import NinasRuntimeError
 from ninas.security import SPF, EmailAddress, getNinasServerAddress
 from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
+from ninas.lists import BlackList, BlackListedError
 from ninas.utils import NList, MailInfo
-from ninas.checks import Check
 from ninas import console
 import socketserver
 import time
@@ -182,12 +181,8 @@ class MailUsersRequest(Request):
             src_addr = MailInfo.fullSrcAddr(mail)
             dst_addr = MailInfo.fullDstAddr(mail)
             
-            if Check.checkWhitelist(src_addr, dst_addr) == True :
-                print("continuing the receiving")
-            else :
-                if Check.checkBlacklist(src_addr, dst_addr) == True :
-                    raise NinasRuntimeError()
-
+            if BlackList(dst_addr).contains(src_addr):
+                raise BlackListedError(src_addr + " is currently blacklisted by " + dst_addr)
         else:
             EmailAddress.assertUserExists(mail.fullSrcAddr())
             
