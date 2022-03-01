@@ -1,5 +1,4 @@
 from ninas.errors import NinasRuntimeError
-from ninas import security
 from ninas import console
 import json
 import os
@@ -58,11 +57,11 @@ class MailInfo(object):
         
     # Get the full client source email address.
     def fullSrcAddr(self):
-        return security.EmailAddress.join(self.src_user_name, self.src_domain_name)
+        return MailFormatter.fullAddress(self.src_user_name, self.src_domain_name)
         
     # Get the full client destination email address.
     def fullDstAddr(self):
-        return security.EmailAddress.join(self.dst_user_name, self.dst_domain_name)
+        return MailFormatter.fullAddress(self.dst_user_name, self.dst_domain_name)
 
     #Prints the info that we have in the mail so far
     def debug(self):
@@ -101,6 +100,11 @@ class MailFormatter(object):
             f.write("RECEIVED DATE: " + str(mail.received_date) + "\n")
             f.write("CONTENT:\n")
             f.write(payload)
+        
+    # Join the user name and the domain name.   
+    @staticmethod
+    def fullAddress(user_name, domain):
+        return user_name + "@" + domain
         
     # Get the path of a given file_name.
     @staticmethod    

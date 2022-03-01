@@ -179,11 +179,13 @@ class MailUsersRequest(Request):
             EmailAddress.assertUserExists(mail.fullDstAddr())
             # TODO : create blacklists/whitelists, check after the MAIL FROM
             # whitelist first
-            mail_addr = MailInfo.fullSrcAddr(mail)
-            if Check.checkWhitelist(mail_addr) == True :
+            src_addr = MailInfo.fullSrcAddr(mail)
+            dst_addr = MailInfo.fullDstAddr(mail)
+            
+            if Check.checkWhitelist(src_addr, dst_addr) == True :
                 print("continuing the receiving")
             else :
-                if Check.checkBlacklist(mail_addr) == True :
+                if Check.checkBlacklist(src_addr, dst_addr) == True :
                     raise NinasRuntimeError()
 
         else:

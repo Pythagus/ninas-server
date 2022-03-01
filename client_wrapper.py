@@ -47,7 +47,6 @@ with tempfile.NamedTemporaryFile(delete=False) as f:
             line = input("\t")
             f.write(bytes(line + "\n", 'utf-8'))
         except EOFError:
-            print("ctrl d merde")
             break
 
 

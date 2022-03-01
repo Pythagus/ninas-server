@@ -80,7 +80,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         ssock = context.wrap_socket(sock,server_side=False,server_hostname='server.host')
         ssock.bind((HOST, 0))
         try:
-            ssock.connect(('server.host', 8000))
+            ssock.connect(('server.host', PORT))
         except ssl.SSLCertVerificationError as e:
             console.error("Error while establishing TLS connexion" + str(e))
 

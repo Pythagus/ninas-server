@@ -19,9 +19,12 @@ fi
 
 # Generate the folders in samples.
 mkdir $FOLDER/$1
-touch $FOLDER/$1/blacklist.txt
-touch $FOLDER/$1/whitelist.txt
+touch $FOLDER/$1/blacklist.json
+touch $FOLDER/$1/whitelist.json
 mkdir $FOLDER/$1/mails
 touch $FOLDER/$1/mails/.gitkeep
+mkdir $FOLDER/$1/mails/requested
+touch $FOLDER/$1/mails/requested/.gitkeep
+
 
 # TODO : generate asymetric keys and certificates.

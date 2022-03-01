@@ -47,12 +47,7 @@ class EmailAddress(object):
             raise MalformedAddressError(
                 Err.INVALID_EMAIL_ADDRESS, "Invalid email address " + address
             )
-     
-    # Join the user name and the domain name.   
-    @staticmethod
-    def join(user_name, domain):
-        return user_name + "@" + domain
-
+            
 
 # Manage the SPF records in the DNS.
 class SPF(object):
