@@ -59,7 +59,11 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             # TODO : create blacklists/whitelists, check after the MAIL FROM
             # whitelist first
             mail_addr = MailInfo.fullSrcAddr(mail)
-            Check.completeCheck(mail_addr)
+            if Check.checkWhitelist(mail_addr) == True :
+                print("continuing the receiving")
+            else :
+                if Check.checkBlacklist(mail_addr) == True :
+                    break
 
             # TODO : Check the signature of the mail
         

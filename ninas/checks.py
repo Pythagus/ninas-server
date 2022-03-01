@@ -18,8 +18,9 @@ class Check():
         blacklist = open(BLACKLIST, 'r').read()
         if (len(re.findall(mail_addr, blacklist)) != 0):
             inBlacklist = True
+            console.warn("User is not blacklisted")
         else :
-            print("it's clear")
+            console.warn("Dangerous user")
             inBlacklist = False
         return inBlacklist
 
@@ -29,8 +30,9 @@ class Check():
         whitelist = open(WHITELIST, 'r').read()
         if (len(re.findall(mail_addr, whitelist)) != 0):
             inWhitelist = True
+            console.warn("User is whitelisted")
         else :
-            print("it's clear")
+            console.warn("User is not whitelisted")
             inWhitelist = False
         return inWhitelist
 
