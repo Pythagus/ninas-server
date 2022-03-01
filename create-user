@@ -19,8 +19,8 @@ fi
 
 # Generate the folders in samples.
 mkdir $FOLDER/$1
-touch $FOLDER/$1/blacklist.json
-touch $FOLDER/$1/whitelist.json
+touch $FOLDER/$1/blacklist.txt
+touch $FOLDER/$1/whitelist.txt
 mkdir $FOLDER/$1/mails
 touch $FOLDER/$1/mails/.gitkeep
 mkdir $FOLDER/$1/mails/requested
