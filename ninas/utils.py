@@ -1,7 +1,10 @@
 from ninas.errors import NinasRuntimeError
 from ninas import security
 from ninas import console
-import json    
+import json
+import os
+
+# TODO replace handle in MailPayloadRequest by MailFormatter
     
 
 # Base class to manage NINAS List
@@ -69,3 +72,56 @@ class MailInfo(object):
                 console.debug("MAIL " + attr + " " + str(value))
             except AttributeError:
                 pass
+
+
+# Helper used to format the mail file
+# saving and add a name convention.
+class MailFormatter(object):
+    __slots__ = ['info']
+    
+    # Initialize the formatter.
+    def __init__(self, mail_info):
+        self.info = mail_info
+        
+    # Save the mail instance in a file.
+    def save(self, payload, is_requested):
+        mail = self.info
+        
+        # Format the file name.
+        file_name  = "mails/" + ("requested/" if is_requested else "")
+        file_name += mail.fullSrcAddr() + "_" + str(mail.sent_date) + ".mail"
+        file_path = MailFormatter.path(mail.fullDstAddr(), file_name)
+        
+        # Put the email content into the file.
+        with open(file_path, 'w') as f:
+            f.write("FROM: " + mail.fullSrcAddr() + "\n")
+            f.write("TO: " + mail.fullDstAddr() + "\n")
+            f.write("SUBJECT: " + mail.subject + "\n")
+            f.write("SENT DATE: " + str(mail.sent_date) + "\n")
+            f.write("RECEIVED DATE: " + str(mail.received_date) + "\n")
+            f.write("CONTENT:\n")
+            f.write(payload)
+        
+    # Get the path of a given file_name.
+    @staticmethod    
+    def path(email_addr, file_name):
+        return "samples/" + email_addr + "/" + file_name
+     
+    # Determine whether the given file name
+    # belongs to the given email address.   
+    @staticmethod
+    def fileIsFrom(file_name, email_addr):
+        return file_name.startswith(email_addr)
+    
+    # Get all the files belonging to the given
+    # email address.
+    @staticmethod
+    def filesFrom(user_addr, email_addr, folder=''):
+        entries = os.scandir(MailFormatter.path(user_addr, folder))
+        
+        files = []
+        for entry in entries:
+            if MailFormatter.fileIsFrom(entry.name, email_addr):
+                files.append(entry.name)
+                
+        return files
