@@ -3,7 +3,7 @@ from typing_extensions import Self
 from ninas.utils import NList, MailInfo
 import json
 import re
-import console
+from ninas import console
 
 # list path
 BLACKLIST = "/home/maud/Documents/nina/ninas-server/samples/maud@microsoft.org/blacklist.json"

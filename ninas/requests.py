@@ -1,6 +1,8 @@
+from ninas.errors import NinasRuntimeError
 from ninas.security import SPF, EmailAddress, getNinasServerAddress
 from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
-from ninas.utils import NList
+from ninas.utils import NList, MailInfo
+from ninas.checks import Check
 from ninas import console
 import socketserver
 import time
@@ -175,6 +177,15 @@ class MailUsersRequest(Request):
         # Check whether the user exists or not.
         if mail.server_to_server_com:
             EmailAddress.assertUserExists(mail.fullDstAddr())
+            # TODO : create blacklists/whitelists, check after the MAIL FROM
+            # whitelist first
+            mail_addr = MailInfo.fullSrcAddr(mail)
+            if Check.checkWhitelist(mail_addr) == True :
+                print("continuing the receiving")
+            else :
+                if Check.checkBlacklist(mail_addr) == True :
+                    raise NinasRuntimeError()
+
         else:
             EmailAddress.assertUserExists(mail.fullSrcAddr())
             
