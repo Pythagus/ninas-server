@@ -21,6 +21,7 @@ fi
 mkdir $FOLDER/$1
 touch $FOLDER/$1/blacklist.txt
 touch $FOLDER/$1/whitelist.txt
+touch $FOLDER/$1/requests.json
 mkdir $FOLDER/$1/mails
 touch $FOLDER/$1/mails/.gitkeep
 mkdir $FOLDER/$1/mails/requested
