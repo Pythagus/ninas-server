@@ -1,21 +1,8 @@
-import sys
 import colorama
-from colorama.initialise import colorama_text
 import tempfile
-import os
-from ninas.requests import HelloServerRequest, MailUsersRequest, MailPayloadRequest
-from ninas.responses import HelloServerResponse, MailUsersResponse
-from ninas.utils import NinasRuntimeError
-from ninas.security import EmailAddress
-from ninas.network import NetworkTools
-from ninas import console
-import socket
-import time
 import sys
+import os
 
-
-
-colorama.init()
 
 print("\n\n")
 print("     ███╗   ██╗██╗███╗   ██╗ █████╗ ███████╗     ██████╗██╗     ██╗███████╗███╗   ██╗████████╗")
