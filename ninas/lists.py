@@ -86,13 +86,6 @@ class WhiteList(AuthorizationList):
     # Initialzie the authorization list.
     def __init__(self, email):
         super().__init__("whitelist.txt", email)
-          
-# Server's whitelist list.
-class WhiteListServer(WhiteList):
-    # Initialzie the authorization list.
-    def __init__(self):
-        super().__init__(None)   
-
 
 
 # Request list to handle connections.
