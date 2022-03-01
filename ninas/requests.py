@@ -1,7 +1,7 @@
 from ninas.security import SPF, EmailAddress, getNinasServerAddress
 from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
-from ninas.lists import BlackList, BlackListedError
-from ninas.utils import NList, MailInfo
+from ninas.lists import BlackList, BlackListedError, RequestList
+from ninas.utils import MailFormatter, NList, MailInfo
 from ninas import console
 import socketserver
 import time
@@ -249,6 +249,9 @@ class MailPayloadRequest(Request):
         mail.setAttr('sent_date', self.sent_date)
         mail.setAttr('received_date', time.time())
         mail.setAttr('payload', self.payload)
+        
+        
+        #MailFormatter.save(mail, self.payload)
         
         # Prepare the destination file.
         if mail.server_to_server_com:

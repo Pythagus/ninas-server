@@ -7,6 +7,8 @@ import json
 import time
 import os
 
+JSON_INDENT = 4 if console.DEBUG else None 
+
 
 # Base authorization list.
 class AuthorizationList(object):
@@ -33,11 +35,19 @@ class AuthorizationList(object):
     
     # Convert the array content to a string.
     def _arrayToContent(self, content):
-        return content.join('\n')
+        return '\n'.join(content)
+    
+    # Clean up the array value.
+    def _cleanContent(self):
+        # Remove the empty strings.
+        filtered = filter(len, self.arr)
+        
+        self.arr = list(filtered)
     
     # Determine whether the list contains the
     # given value.
     def contains(self, value):
+        print("here")
         return value in self.arr
     
     # Update the request file with the current list.
@@ -46,13 +56,15 @@ class AuthorizationList(object):
             file_name = MailFormatter.path(self.email, self.file_name)
             
             with open(file_name, 'w') as f:
-                f.write(self._arrayToContent(self.content))
+                self._cleanContent()
+                f.write(self._arrayToContent(self.arr))
         except Exception as e:
             console.debug(e)
             
     # Add an item to the request list.  
     def add(self, value):
-        self.arr.append(value)
+        if not self.contains(value):
+            self.arr.append(value)
     
      
 # Blacklist list.
@@ -87,20 +99,22 @@ class RequestList(AuthorizationList):
     
     # Convert the array content to a string.
     def _arrayToContent(self, content):
-        return json.dumps(content)
+        return json.dumps(content, indent=JSON_INDENT)
     
     # Determine whether the list contains the
     # given value.
     def contains(self, address):
+        value = address.get('email') if isinstance(address, dict) else str(address) 
+        
         for request in self.arr:
-            if request.get('email') == address:
+            if request.get('email') == value:
                 return True
         
         return False
         
     # Get the list of the requested email files.
     def _requestedEmails(self, email_addr):
-        return MailFormatter.filesFrom(self.auth.email, email_addr, folder='mails/requested')
+        return MailFormatter.filesFrom(self.email, email_addr, folder='mails/requested')
     
     # Add an item to the request list.  
     def add(self, email_addr):
@@ -113,12 +127,10 @@ class RequestList(AuthorizationList):
         if nbr_emails_received > RequestList.MAX_REQ_EMAILS:
             raise TooManyRequestError("From: " + email_addr)
         
-        # If a request already exists, don't do anything.
-        if not self.contains(email_addr):
-            super().add({
-                "email": email_addr,
-                "timestamp": time.time()
-            })
+        super().add({
+            "email": email_addr,
+            "timestamp": time.time()
+        })
             
     # Remove the request from the given email address.
     # That doesn't remove the request in the JSON file
