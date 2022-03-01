@@ -4,6 +4,7 @@ from ninas.utils import NList
 from ninas import console
 import socketserver
 import time
+import ssl
 
 
 # Requests identifiers.
@@ -63,6 +64,7 @@ class HelloRequest(Request):
     def handle(self, mail):
         mail.setAttr('server_to_server_com', False)
         mail.setAttr('src_domain_name', self.client_domain_name)
+
 
 
 
@@ -175,6 +177,11 @@ class MailUsersRequest(Request):
             EmailAddress.assertUserExists(mail.fullDstAddr())
         else:
             EmailAddress.assertUserExists(mail.fullSrcAddr())
+            
+            #Check if the user's certificate matchs its identitity
+            ssl.match_hostname(self.socket.getpeercert(), mail.fullSrcAddr())
+
+        #Check to see if the client cer
 
         # TODO : check for the blacklist
 
