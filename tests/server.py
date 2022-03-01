@@ -1,12 +1,13 @@
 import socket
 import ssl
 
-ROOT_PATH='/home/dmolina/tls_sec/ninas-server/tests/keys'
+ROOT_PATH='/home/elies/5A/ninas-server/keys/'
 
-context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH, capath=ROOT_PATH)
+
+context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 context.verify_mode = ssl.CERT_REQUIRED
-context.load_cert_chain(ROOT_PATH + '/server/cert.pem', ROOT_PATH + '/server/key.pem')
-#context.load_verify_locations(capath=ROOT_PATH)
+context.load_cert_chain(ROOT_PATH + 'server.host/cert.pem', ROOT_PATH + 'server.host/key.pem')
+context.load_verify_locations(cafile=ROOT_PATH + "demoCA/cacert.pem") 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
     sock.bind(('server.host', 8443))

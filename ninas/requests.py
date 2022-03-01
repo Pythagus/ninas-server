@@ -1,9 +1,12 @@
+from ninas.errors import NinasRuntimeError
 from ninas.security import SPF, EmailAddress, getNinasServerAddress
 from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
-from ninas.utils import NList
+from ninas.utils import NList, MailInfo
+from ninas.checks import Check
 from ninas import console
 import socketserver
 import time
+import ssl
 
 
 # Requests identifiers.
@@ -30,42 +33,50 @@ class Request(NetworkBasePayload, socketserver.BaseRequestHandler):
         }
 
 
-# Request made from the NINAS server to
-# another NINAS server to request a new
+# Request made from the NINAS client to
+# a NINAS server to request a new
 # connection.
 class HelloRequest(Request):
     __slots__ = [
-        'server_domain_name'
+        'client_domain_name'
     ]
 
     # Initialize the request instance.
-    def __init__(self, socket, server_domain_name):
+    def __init__(self, socket, client_domain_name):
         super().__init__(socket)
 
-        self.server_domain_name = server_domain_name
+        self.client_domain_name = client_domain_name
 
     # Convert bytes to current class
     # attributes.
     @staticmethod
     def unserialize(socket, values):
-        NList(values).mustContainKeys('server_domain_name')
+        NList(values).mustContainKeys('client_domain_name')
         
-        return HelloRequest(socket, values['server_domain_name'])
+        return HelloRequest(socket, values['client_domain_name'])
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
     def serialize(self):
         return NList({
             'type': REQ_HELLO_CLIENT,
-            'server_domain_name': self.server_domain_name
+            'client_domain_name': self.client_domain_name
         }).toBytes()
+
+    def handle(self, mail):
+        mail.setAttr('server_to_server_com', False)
+        mail.setAttr('src_domain_name', self.client_domain_name)
+
+
+
+
 
 
 # Request made from a NINAS client to a
 # NINAS server to request a new connection.
 class HelloServerRequest(HelloRequest):
     __slots__ = [
-        'client_domain_name'
+        'client_domain_name', 'server_domain_name'
     ]
 
     # Initialize the request instance.
@@ -73,6 +84,7 @@ class HelloServerRequest(HelloRequest):
         super().__init__(socket, server_domain_name)
 
         self.client_domain_name = client_domain_name
+        self.server_domain_name = server_domain_name
 
     # Convert bytes to current class
     # attributes.
@@ -90,6 +102,7 @@ class HelloServerRequest(HelloRequest):
         console.debug("Handling HelloServerRequest")
         
         server_name = getNinasServerAddress(self.server_domain_name)
+        mail.setAttr('server_to_server_com', True)
 
         # If the domain name doesn't match the
         # server name, we need to verify the SPF
@@ -98,6 +111,7 @@ class HelloServerRequest(HelloRequest):
             SPF.check(self.client_domain_name, self.ip_addr_dst)
             mail.setAttr('src_domain_name', self.client_domain_name)
             mail.setAttr('src_server_domain_name', self.server_domain_name)
+
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
@@ -161,7 +175,24 @@ class MailUsersRequest(Request):
         EmailAddress.assertValidAddress(mail.fullDstAddr())
     
         # Check whether the user exists or not.
-        EmailAddress.assertUserExists(mail.fullDstAddr())
+        if mail.server_to_server_com:
+            EmailAddress.assertUserExists(mail.fullDstAddr())
+            # TODO : create blacklists/whitelists, check after the MAIL FROM
+            # whitelist first
+            mail_addr = MailInfo.fullSrcAddr(mail)
+            if Check.checkWhitelist(mail_addr) == True :
+                print("continuing the receiving")
+            else :
+                if Check.checkBlacklist(mail_addr) == True :
+                    raise NinasRuntimeError()
+
+        else:
+            EmailAddress.assertUserExists(mail.fullSrcAddr())
+            
+            #Check if the user's certificate matchs its identitity
+            ssl.match_hostname(self.socket.getpeercert(), mail.fullSrcAddr())
+
+        #Check to see if the client cer
 
         # TODO : check for the blacklist
 
@@ -172,26 +203,29 @@ class MailPayloadRequest(Request):
         'sent_date', 'subject', 'payload_file_name', 'payload'
     ]
 
-    def __init__(self, socket, subject, sent_date, payload_file_name=None):
+    def __init__(self, socket, subject, sent_date, payload_file_name=None, payload=None):
         super().__init__(socket)
         
         self.subject = subject
         self.payload_file_name = payload_file_name
         self.sent_date = sent_date
+        self.payload = payload
+
 
     # Convert the class attributes to 
     # bytes to be sent over the network.
     def serialize(self):
         # Get the mail content.
-        payload = ""
-        with open(self.payload_file_name, "r") as f:
-            payload = f.read()
-        
+
+        if self.payload == None:
+            with open(self.payload_file_name, "r") as f:
+                self.payload = f.read()
+
         return NList({
             'type': REQ_MAIL_PAYLOAD,
             'subject': self.subject,
             'sent_date': self.sent_date,
-            'payload': payload,
+            'payload': self.payload,
         }).toBytes()
 
     # Convert bytes to current class
@@ -217,9 +251,13 @@ class MailPayloadRequest(Request):
         mail.setAttr('subject', self.subject)
         mail.setAttr('sent_date', self.sent_date)
         mail.setAttr('received_date', time.time())
+        mail.setAttr('payload', self.payload)
         
         # Prepare the destination file.
-        self.payload_file_name = "samples/" + mail.fullDstAddr() + "/mails/" + mail.fullSrcAddr() + "_" + str(mail.sent_date) + ".mail"
+        if mail.server_to_server_com:
+            self.payload_file_name = "samples/" + mail.fullDstAddr() + "/mails/" + mail.fullSrcAddr() + "_" + str(mail.sent_date) + ".mail"
+        else:
+            self.payload_file_name = "samples/" + mail.fullSrcAddr() + "/mails/" + mail.fullDstAddr() + "_" + str(mail.sent_date) + ".mail"
         
         # Put the email content into the file.
         with open(self.payload_file_name, 'w') as f:

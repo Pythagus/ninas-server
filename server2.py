@@ -4,7 +4,6 @@ from ninas.requests import HelloRequest, HelloServerRequest, MailUsersRequest, M
 from ninas.errors import CriticalError, NinasRuntimeError
 from ninas.network import NetworkTools
 from ninas.utils import MailInfo
-from ninas.checks import Check
 from ninas import console
 import socketserver
 import threading
@@ -55,10 +54,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
                 console.error("Error during communication, reset connexion")
                 break
 
-            # TODO : create blacklists/whitelists, check after the MAIL FROM
-
-            # TODO : Check the signature of the mail
-        
             is_connexion_finished = self.processPacket(mail, obj, obj_type)
 
             # TODO : create another domain name to be able to send mails in both directions
@@ -109,9 +104,6 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
             ErrorResponse(obj.socket, e.type, e.message).send()
             return None, None
         except NinasRuntimeError as e:
-            console.warn(e)
-            return None, None
-        except ssl.CertificateError as e:
             console.warn(e)
             return None, None
         return obj, obj_type

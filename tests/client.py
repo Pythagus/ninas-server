@@ -1,12 +1,13 @@
 import socket
 import ssl
 
-ROOT_PATH='/home/dmolina/tls_sec/ninas-server/tests/keys'
+ROOT_PATH='/home/elies/5A/ninas-server/keys/'
 hostname = 'server.host'
 
 
-context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, capath=ROOT_PATH)
-context.load_cert_chain(ROOT_PATH + '/client/cert.pem', ROOT_PATH + '/client/key.pem')
+context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+context.load_cert_chain(ROOT_PATH + 'client.host/cert.pem', ROOT_PATH + '/client.host/key.pem')
+context.load_verify_locations(cafile=ROOT_PATH + "demoCA/cacert.pem") 
 
 
 # TODO : try/catch ssl.SSLCertVerificationError 
