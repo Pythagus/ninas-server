@@ -23,7 +23,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         context.verify_mode = ssl.CERT_REQUIRED
-        context.load_cert_chain('./keys/' + HOST + '/cert.pem', './keys/' + HOST + '/key.pem')
+        context.load_cert_chain('./keys/' + HOST + '/cert.pem', './keys/' + HOST + '/key-decrypted.pem')
         context.load_verify_locations(cafile = './keys/demoCA/cacert.pem')
 
         self.socket = context.wrap_socket(self.socket, server_side=True)

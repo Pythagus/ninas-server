@@ -11,7 +11,7 @@ import ssl
 
 
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-context.load_cert_chain('./keys/elies@dmolina.fr/cert.pem', './keys/elies@dmolina.fr/key.pem')
+context.load_cert_chain('./keys/elies@dmolina.fr/cert.pem', './keys/elies@dmolina.fr/key-decrypted.pem')
 context.load_verify_locations(cafile="./keys/demoCA/cacert.pem")
 
 init_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
