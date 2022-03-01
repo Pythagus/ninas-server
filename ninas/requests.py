@@ -1,7 +1,7 @@
+from ninas.lists import BlackList, BlackListedError, RequestList, WhiteList
 from ninas.security import SPF, EmailAddress, getNinasServerAddress
 from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
-from ninas.lists import BlackList, BlackListedError, RequestList
-from ninas.utils import MailFormatter, NList, MailInfo
+from ninas.utils import NList
 from ninas import console
 import socketserver
 import time
@@ -163,35 +163,43 @@ class MailUsersRequest(Request):
     # Handle the current request.
     def handle(self, mail):
         console.debug("Handling MailUsersRequest")
-
+        
+        src_addr = mail.fullSrcAddr()
+        dst_addr = mail.fullDstAddr()
+        
+        # Check the addresses validity.
+        EmailAddress.assertValidAddress(src_addr)
+        EmailAddress.assertValidAddress(dst_addr)
+        
         # Set the mail received info.
         mail.setAttr('src_user_name', self.src_user_name)
         mail.setAttr('dst_user_name', self.dst_user_name)
         mail.setAttr('dst_domain_name', self.dst_domain_name)
+        mail.setAttr('is_requested', False) # Default value, set after if needed.
         
-        # Check the addresses validity.
-        EmailAddress.assertValidAddress(mail.fullSrcAddr())
-        EmailAddress.assertValidAddress(mail.fullDstAddr())
-    
         # Check whether the user exists or not.
         if mail.server_to_server_com:
-            EmailAddress.assertUserExists(mail.fullDstAddr())
-            # TODO : create blacklists/whitelists, check after the MAIL FROM
-            # whitelist first
-            src_addr = MailInfo.fullSrcAddr(mail)
-            dst_addr = MailInfo.fullDstAddr(mail)
+            EmailAddress.assertUserExists(dst_addr)
             
+            # If the sender is blacklisted, then raise
+            # a critical error.
             if BlackList(dst_addr).contains(src_addr):
                 raise BlackListedError(src_addr + " is currently blacklisted by " + dst_addr)
-        else:
-            EmailAddress.assertUserExists(mail.fullSrcAddr())
             
-            #Check if the user's certificate matchs its identitity
-            ssl.match_hostname(self.socket.getpeercert(), mail.fullSrcAddr())
-
-        #Check to see if the client cer
-
-        # TODO : check for the blacklist
+            # If not whitelisted, we need to send a request
+            # to the user to ask him whether or not he
+            # wants the mail to be sent to him.
+            if not WhiteList(dst_addr).contains(src_addr):
+                req_list = RequestList(dst_addr)
+                req_list.add(src_addr)
+                req_list.save()
+                
+                mail.setAttr('is_requested', True)
+        else:
+            EmailAddress.assertUserExists(src_addr)
+            
+            # Check if the user's certificate matches its identitity.
+            ssl.match_hostname(self.socket.getpeercert(), src_addr)
 
 
 # Request to send the mail to the server
@@ -240,18 +248,6 @@ class MailPayloadRequest(Request):
 
         return request
     
-    # Get the file destination path.
-    @staticmethod
-    def _destinationPath(mail):
-        id = "_" + str(mail.sent_date) + ".mail"
-        
-        if mail.server_to_server_com:
-            path = "samples/" + mail.fullDstAddr() + "/mails/"      + mail.fullSrcAddr() + id
-        else:
-            path = "samples/" + mail.fullSrcAddr() + "/mails/sent/" + mail.fullDstAddr() + id
-            
-        return path
-    
     # Handle the current request.
     def handle(self, mail):
         console.debug("Handling MailPayloadRequest")
@@ -265,9 +261,10 @@ class MailPayloadRequest(Request):
         # Prepare the destination file.
         id = "_" + str(mail.sent_date) + ".mail"
         if mail.server_to_server_com:
-            self.payload_file_name = "samples/" + mail.fullDstAddr() + "/mails/"      + mail.fullSrcAddr() + id
+            folder = "requested/" if mail.is_requested else ""
+            self.payload_file_name = "samples/" + mail.fullDstAddr() + "/mails/" + folder + mail.fullSrcAddr() + id
         else:
-            self.payload_file_name = "samples/" + mail.fullSrcAddr() + "/mails/sent/" + mail.fullDstAddr() + id
+            self.payload_file_name = "samples/" + mail.fullSrcAddr() + "/mails/sent/"     + mail.fullDstAddr() + id
         
         # Put the email content into the file.
         with open(self.payload_file_name, 'w') as f:

@@ -34,7 +34,7 @@ class MalformedArrayError(NinasRuntimeError): ...
 class MailInfo(object):
     __slots__ = [
         'server_to_server_com', 'src_server_domain_name', 'src_domain_name', 'dst_domain_name' ,'src_user_name', 'dst_user_name', 
-        'sent_date', 'received_date', 'subject', 'payload'
+        'sent_date', 'received_date', 'subject', 'payload', 'is_requested'
     ]
 
     # Updates the value of an attribute 
