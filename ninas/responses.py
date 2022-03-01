@@ -5,6 +5,7 @@ from ninas import console
 
 # Responses identifiers.
 RES_HELLO_SERVER = PAYLOAD_RESPONSE_MASK + 10
+RES_HELLO        = PAYLOAD_RESPONSE_MASK + 50
 RES_MAIL_USERS   = PAYLOAD_RESPONSE_MASK + 20
 RES_MAIL_PAYLOAD = PAYLOAD_RESPONSE_MASK + 30
 RES_ERROR        = PAYLOAD_RESPONSE_MASK + 40
@@ -21,6 +22,7 @@ class Response(NetworkBasePayload):
     def classIdentifierCorrespondence(): 
         return {
             RES_HELLO_SERVER: HelloServerResponse,
+            RES_HELLO: HelloResponse,
             RES_MAIL_USERS: MailUsersResponse,
             RES_MAIL_PAYLOAD: MailPayloadResponse,
             RES_ERROR: ErrorResponse,
@@ -37,7 +39,7 @@ class EmptyResponse(Response):
         self.type = type
         
     # Handle the current request.
-    def handle(self): 
+    def handle(self, mail=None): 
         console.debug("Handling " + self.__class__.__name__)
 
     # Convert the class attributes to 
@@ -73,7 +75,7 @@ class ErrorResponse(Response):
         self.data = data
         
     # Handle the current request.
-    def handle(self): 
+    def handle(self, mail=None): 
         console.debug("Handling " + self.__class__.__name__)
         console.error(str(self.error_type) + " : " + self.data)
         self.socket.close()
@@ -101,11 +103,17 @@ class ErrorResponse(Response):
         )
     
         
-# Response sent after the first client
+# Response sent after the first server(client server)
 # contact request.
 class HelloServerResponse(EmptyResponse):
     def __init__(self, socket):
         super().__init__(socket, RES_HELLO_SERVER)
+
+# Response sent after the first user client
+# contact request
+class HelloResponse(EmptyResponse):
+    def __init__(self, socket):
+        super().__init__(socket, RES_HELLO)
 
 
 # Send an empty response to acknowledge
