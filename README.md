@@ -10,5 +10,11 @@ sudo apt install python3-dnspython
 ## Testing
 Keys were generated to be able to simulate two hosts `server.host` and `client.host`. Password decrypting keys is `tata`.
 
+To use the testing scripts, you need to add the following virtual hosts in the `/etc/hosts` file (for Linux users):
+```bash
+127.0.0.2	server.host
+127.0.0.3	client.host
+```
+
 ## Authors
 Maud Pennetier, Elies Tali, Damien Molina
