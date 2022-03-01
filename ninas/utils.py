@@ -3,8 +3,6 @@ from ninas import console
 import json
 import os
 
-# TODO replace handle in MailPayloadRequest by MailFormatter
-    
 
 # Base class to manage NINAS List
 # and add useful tools.
@@ -64,32 +62,7 @@ class MailInfo(object):
 
 # Helper used to format the mail file
 # saving and add a name convention.
-class MailFormatter(object):
-    __slots__ = ['info']
-    
-    # Initialize the formatter.
-    def __init__(self, mail_info):
-        self.info = mail_info
-        
-    # Save the mail instance in a file.
-    def save(self, payload, is_requested):
-        mail = self.info
-        
-        # Format the file name.
-        file_name  = "mails/" + ("requested/" if is_requested else "")
-        file_name += mail.fullSrcAddr() + "_" + str(mail.sent_date) + ".mail"
-        file_path = MailFormatter.path(mail.fullDstAddr(), file_name)
-        
-        # Put the email content into the file.
-        with open(file_path, 'w') as f:
-            f.write("FROM: " + mail.fullSrcAddr() + "\n")
-            f.write("TO: " + mail.fullDstAddr() + "\n")
-            f.write("SUBJECT: " + mail.subject + "\n")
-            f.write("SENT DATE: " + str(mail.sent_date) + "\n")
-            f.write("RECEIVED DATE: " + str(mail.received_date) + "\n")
-            f.write("CONTENT:\n")
-            f.write(payload)
-        
+class MailFormatter(object):        
     # Join the user name and the domain name.   
     @staticmethod
     def fullAddress(user_name, domain):

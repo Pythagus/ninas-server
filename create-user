@@ -26,6 +26,8 @@ mkdir $FOLDER/$1/mails
 touch $FOLDER/$1/mails/.gitkeep
 mkdir $FOLDER/$1/mails/requested
 touch $FOLDER/$1/mails/requested/.gitkeep
+mkdir $FOLDER/$1/mails/sent
+touch $FOLDER/$1/mails/sent/.gitkeep
 
 
 # TODO : generate asymetric keys and certificates.

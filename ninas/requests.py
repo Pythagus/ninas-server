@@ -240,6 +240,18 @@ class MailPayloadRequest(Request):
 
         return request
     
+    # Get the file destination path.
+    @staticmethod
+    def _destinationPath(mail):
+        id = "_" + str(mail.sent_date) + ".mail"
+        
+        if mail.server_to_server_com:
+            path = "samples/" + mail.fullDstAddr() + "/mails/"      + mail.fullSrcAddr() + id
+        else:
+            path = "samples/" + mail.fullSrcAddr() + "/mails/sent/" + mail.fullDstAddr() + id
+            
+        return path
+    
     # Handle the current request.
     def handle(self, mail):
         console.debug("Handling MailPayloadRequest")
@@ -250,14 +262,12 @@ class MailPayloadRequest(Request):
         mail.setAttr('received_date', time.time())
         mail.setAttr('payload', self.payload)
         
-        
-        #MailFormatter.save(mail, self.payload)
-        
         # Prepare the destination file.
+        id = "_" + str(mail.sent_date) + ".mail"
         if mail.server_to_server_com:
-            self.payload_file_name = "samples/" + mail.fullDstAddr() + "/mails/" + mail.fullSrcAddr() + "_" + str(mail.sent_date) + ".mail"
+            self.payload_file_name = "samples/" + mail.fullDstAddr() + "/mails/"      + mail.fullSrcAddr() + id
         else:
-            self.payload_file_name = "samples/" + mail.fullSrcAddr() + "/mails/" + mail.fullDstAddr() + "_" + str(mail.sent_date) + ".mail"
+            self.payload_file_name = "samples/" + mail.fullSrcAddr() + "/mails/sent/" + mail.fullDstAddr() + id
         
         # Put the email content into the file.
         with open(self.payload_file_name, 'w') as f:
