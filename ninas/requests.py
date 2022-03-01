@@ -1,6 +1,7 @@
-from ninas.lists import BlackList, BlackListedError, RequestList, WhiteList
+from ninas.lists import BlackList, BlackListServer, RequestList, WhiteList
 from ninas.security import SPF, EmailAddress, getNinasServerAddress
 from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
+from ninas.errors import CriticalError, Err
 from ninas.utils import NList
 from ninas import console
 import socketserver
@@ -164,6 +165,12 @@ class MailUsersRequest(Request):
     def handle(self, mail):
         console.debug("Handling MailUsersRequest")
         
+        # Set the mail received info.
+        mail.setAttr('src_user_name', self.src_user_name)
+        mail.setAttr('dst_user_name', self.dst_user_name)
+        mail.setAttr('dst_domain_name', self.dst_domain_name)
+        mail.setAttr('is_requested', False) # Default value, set after if needed.     
+           
         src_addr = mail.fullSrcAddr()
         dst_addr = mail.fullDstAddr()
         
@@ -171,20 +178,19 @@ class MailUsersRequest(Request):
         EmailAddress.assertValidAddress(src_addr)
         EmailAddress.assertValidAddress(dst_addr)
         
-        # Set the mail received info.
-        mail.setAttr('src_user_name', self.src_user_name)
-        mail.setAttr('dst_user_name', self.dst_user_name)
-        mail.setAttr('dst_domain_name', self.dst_domain_name)
-        mail.setAttr('is_requested', False) # Default value, set after if needed.
-        
         # Check whether the user exists or not.
         if mail.server_to_server_com:
             EmailAddress.assertUserExists(dst_addr)
             
+            server_bl = BlackListServer()
+            user_bl   = BlackList(dst_addr)
+            
             # If the sender is blacklisted, then raise
             # a critical error.
-            if BlackList(dst_addr).contains(src_addr):
-                raise BlackListedError(src_addr + " is currently blacklisted by " + dst_addr)
+            if server_bl.contains(src_addr) or user_bl.contains(src_addr):
+                raise CriticalError(
+                    Err.BLACKLISTED, src_addr + " is currently blacklisted by " + dst_addr
+                )
             
             # If not whitelisted, we need to send a request
             # to the user to ask him whether or not he

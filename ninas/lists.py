@@ -1,6 +1,6 @@
+from ninas.errors import CriticalError, Err
 from datetime import datetime, timedelta
 from ninas.security import EmailAddress
-from ninas.errors import CriticalError
 from ninas.utils import MailFormatter
 from ninas import console
 import json
@@ -15,7 +15,7 @@ class AuthorizationList(object):
     __slots__ = ['arr', 'email', 'file_name']
     
     # Initialzie the authorization list.
-    def __init__(self, email, file_name):
+    def __init__(self, file_name, email=None):
         self.email     = email
         self.file_name = file_name
         
@@ -24,6 +24,7 @@ class AuthorizationList(object):
             content = f.read()
 
         self.arr = self._contentToArray(content)
+        self._cleanContent()
     
     # Get the given file's path.
     def _getPath(self, file_name):
@@ -47,13 +48,12 @@ class AuthorizationList(object):
     # Determine whether the list contains the
     # given value.
     def contains(self, value):
-        print("here")
         return value in self.arr
     
     # Update the request file with the current list.
     def save(self):
         try:
-            file_name = MailFormatter.path(self.email, self.file_name)
+            file_name = self._getPath(self.file_name)
             
             with open(file_name, 'w') as f:
                 self._cleanContent()
@@ -67,20 +67,32 @@ class AuthorizationList(object):
             self.arr.append(value)
     
      
-# Blacklist list.
+# Users' blacklist list.
 class BlackList(AuthorizationList):
-        
     # Initialzie the authorization list.
     def __init__(self, email):
-        super().__init__(email, "blacklist.txt")
+        super().__init__("blacklist.txt", email)
+    
+     
+# Server's blacklist list.
+class BlackListServer(BlackList):
+    # Initialzie the authorization list.
+    def __init__(self):
+        super().__init__(None)
     
     
-# Whitelist list.   
+# Users' whitelist list.   
 class WhiteList(AuthorizationList):
-        
     # Initialzie the authorization list.
     def __init__(self, email):
-        super().__init__(email, "whitelist.txt")
+        super().__init__("whitelist.txt", email)
+          
+# Server's whitelist list.
+class WhiteListServer(WhiteList):
+    # Initialzie the authorization list.
+    def __init__(self):
+        super().__init__(None)   
+
 
 
 # Request list to handle connections.
@@ -90,7 +102,7 @@ class RequestList(AuthorizationList):
     
     # Initialzie the authorization list.
     def __init__(self, email):
-        super().__init__(email, "requests.json")
+        super().__init__("requests.json", email)
       
     # Convert the string content to an array.
     # Override parent method.  
@@ -125,7 +137,9 @@ class RequestList(AuthorizationList):
                 
         # If too many emails were sent.
         if nbr_emails_received > RequestList.MAX_REQ_EMAILS:
-            raise TooManyRequestError("From: " + email_addr)
+            raise CriticalError(
+                Err.TOO_MANY_REQUESTS, "From: " + email_addr
+            )
         
         super().add({
             "email": email_addr,
@@ -173,12 +187,3 @@ class RequestList(AuthorizationList):
             # In every case, delete the record.
             self.arr.pop(0)
             
-    
-# Exception raised when a user sent too 
-# many emails to someone didn't accepted
-# his request before.
-class TooManyRequestError(CriticalError): ...
-
-# Exception raised when an email from a
-# blacklisted address was received.
-class BlackListedError(CriticalError): ...

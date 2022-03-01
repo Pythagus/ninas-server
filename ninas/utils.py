@@ -71,6 +71,9 @@ class MailFormatter(object):
     # Get the path of a given file_name.
     @staticmethod    
     def path(email_addr, file_name):
+        if email_addr is None:
+            return "samples/" + file_name
+        
         return "samples/" + email_addr + "/" + file_name
      
     # Determine whether the given file name

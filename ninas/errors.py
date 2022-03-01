@@ -5,6 +5,8 @@ class Err(object):
     DOMAIN_SPF            = 406
     INVALID_NINAS_DOMAIN  = 407
     INVALID_EMAIL_ADDRESS = 408
+    TOO_MANY_REQUESTS     = 409
+    BLACKLISTED           = 410
     
 # Base NINAS runtime error.
 class NinasRuntimeError(RuntimeError): ...

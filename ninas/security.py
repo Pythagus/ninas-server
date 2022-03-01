@@ -15,7 +15,7 @@ SERVER_ADDR_START = 'ninas.'
 # address is valid.
 def getNinasServerAddress(address):
     if not address.startswith(SERVER_ADDR_START):
-        raise MalformedAddressError(
+        raise CriticalError(
             Err.INVALID_NINAS_DOMAIN, "NINAS server address must start with '" + SERVER_ADDR_START + "'"
         )
 
@@ -40,7 +40,7 @@ class EmailAddress(object):
     @staticmethod
     def assertValidAddress(address):
         if not re.match('^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$', address):
-            raise MalformedAddressError(
+            raise CriticalError(
                 Err.INVALID_EMAIL_ADDRESS, "Invalid email address " + address
             )
             
@@ -61,7 +61,7 @@ class SPF(object):
         try:
             answers = dns.resolver.query(domain, 'TXT')
         except:
-            raise InvalidNinasSpfError(Err.DOMAIN_NOT_FOUND, "Cannot get " + domain + " DNS records")
+            raise CriticalError(Err.DOMAIN_NOT_FOUND, "Cannot get " + domain + " DNS records")
         
         ip4 = []
         ip6 = []
@@ -83,16 +83,6 @@ class SPF(object):
 
         # If no matching IP was found.
         if ip_addr not in ip4 and ip_addr not in ip6:
-            raise InvalidNinasSpfError(Err.DOMAIN_SPF, "IP address " + ip_addr + " not allowed to manage " + domain)
+            raise CriticalError(Err.DOMAIN_SPF, "IP address " + ip_addr + " not allowed to manage " + domain)
         
         console.debug("   SPF checked!")
-
-
-# Exception raised when no valid
-# SPF records were found in the
-# DNS records.
-class InvalidNinasSpfError(CriticalError): ...
-
-
-# The given address is not NINAS-like.
-class MalformedAddressError(CriticalError): ...
