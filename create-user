@@ -22,6 +22,7 @@ mkdir $FOLDER/$1
 touch $FOLDER/$1/blacklist.txt
 touch $FOLDER/$1/whitelist.txt
 touch $FOLDER/$1/requests.json
+echo -n "[]" > $FOLDER/$1/requests.json
 mkdir $FOLDER/$1/mails
 touch $FOLDER/$1/mails/.gitkeep
 mkdir $FOLDER/$1/mails/requested
@@ -31,3 +32,5 @@ touch $FOLDER/$1/mails/sent/.gitkeep
 
 
 # TODO : generate asymetric keys and certificates.
+
+echo -e "\e[32mUser $1 successfully created!\e[0m"
