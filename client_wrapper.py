@@ -1,4 +1,5 @@
 from colorama import Fore, Back, Style
+from ninas.lists import RequestList
 from ninas import security
 from ninas import console
 from ninas import errors
@@ -23,9 +24,6 @@ ASCII_ART_WIDTH = len(ASCII_ART[0])
 # Get the terminal width.
 TERM_WIDTH = shutil.get_terminal_size().columns
 
-# Every line start with this variable.
-LINE_START = "  >>> "
-
 # Get the required padding to center a text.
 def getPadding(el):
     return int(.5 * (TERM_WIDTH - el))
@@ -33,10 +31,6 @@ def getPadding(el):
 # Center the text adding spaces.
 def center(message):
     return " " * getPadding(len(message)) + message
-
-# Ask something to the user.
-def ask(message):
-    return input(Fore.YELLOW + LINE_START + message + ": " + Fore.RESET)
 
 # Display a section title.
 def section_title(title):
@@ -72,33 +66,56 @@ print("\n")
 if ASCII_ART_WIDTH > TERM_WIDTH:
     console.warn("You should use a bigger screen")
     print()
+    
+
+# Ask an email address to the user.
+def ask_email(message):
+    addr = console.ask(message)
+    
+    try:
+        security.EmailAddress.assertValidAddress(addr)
+    except errors.CriticalError as e:
+        console.error(e)
+        console.error("Aborting.\n")
+        sys.exit(42)
+        
+    return addr
+
 
 # Ask for the destination email address.
-src_email_addr = ask("Source email adress")
+src_email_addr = ask_email("Your email address")
+print()
+
+# Check whether the user exists on the server.
 try:
-    security.EmailAddress.assertValidAddress(src_email_addr)
+    security.EmailAddress.assertUserExists(src_email_addr)
 except errors.CriticalError as e:
     console.error(e)
     console.error("Aborting.\n")
     sys.exit(42)
 
 
+# Ask for requests.
+section_title("Requests")
+request = RequestList(src_email_addr)
 
-# Logged-in email account.
+if request.isEmpty():
+    print(console.BLANK_LINE_START + "No requests.")
+else:
+    request.ask()
+    request.save()
+
+print()
+
+# Write an email.
 section_title("Write an email")
 
 # Ask for the destination email address.
-dst_email_addr = ask("Destination email adress")
-try:
-    security.EmailAddress.assertValidAddress(dst_email_addr)
-except errors.CriticalError as e:
-    console.error(e)
-    console.error("Aborting.\n")
-    sys.exit(e.args[0])
+dst_email_addr = ask_email("Destination email adress")
 
-subject = ask("Subject of the mail")
+subject = console.ask("Subject of the mail")
 
-print(Fore.YELLOW + LINE_START + "Content of the mail (Ctrl-D to save it.): " + Fore.RESET)
+print(Fore.YELLOW + console.LINE_START + "Content of the mail (Ctrl-D to save it.): " + Fore.RESET)
 
 
 file_name = ""
@@ -106,8 +123,7 @@ with tempfile.NamedTemporaryFile(delete=False) as f:
     file_name = f.name
     while True:
         try:
-            line = input(" " * len(LINE_START))
-            print("LINE = " + line)
+            line = input(console.BLANK_LINE_START)
             f.write(bytes(line + "\n", 'utf-8'))
         except EOFError:
             break
@@ -117,6 +133,6 @@ port = sys.argv[1]
 status = os.system("python3 client.py " + port + " " + src_email_addr + " " + dst_email_addr + " '" + subject + "' " + file_name)
 
 if status == 0:
-    print(Fore.BLUE + LINE_START + "Thank you for using our mail service, see you !")
+    print(Fore.BLUE + console.LINE_START + "Thank you for using our mail service, see you !")
 else:
     console.error("An error occurred.")

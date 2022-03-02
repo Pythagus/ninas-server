@@ -44,6 +44,11 @@ class AuthorizationList(object):
         filtered = filter(len, self.arr)
         
         self.arr = list(filtered)
+        
+    # Determine whether the current list
+    # is empty or not.
+    def isEmpty(self):
+        return len(self.arr) <= 0
     
     # Determine whether the list contains the
     # given value.
@@ -162,8 +167,7 @@ class RequestList(AuthorizationList):
             
             # If the request is not too old.
             if not (datetime.fromtimestamp(request.get('timestamp')) < oldest_date):
-                # TODO make a console function
-                val = input(email + " wants to contact you. Do you? [y/N] ")
+                val = console.ask(email + " wants to contact you. Do you?", ending=False, choices=" [y/N] ")
                 
                 if val.lower() in ["y", "yes"]:
                     # TODO add to whitelist
