@@ -73,9 +73,18 @@ if ASCII_ART_WIDTH > TERM_WIDTH:
     console.warn("You should use a bigger screen")
     print()
 
+# Ask for the destination email address.
+src_email_addr = ask("Source email adress")
+try:
+    security.EmailAddress.assertValidAddress(src_email_addr)
+except errors.CriticalError as e:
+    console.error(e)
+    console.error("Aborting.\n")
+    sys.exit(42)
+
+
+
 # Logged-in email account.
-print("You are logged as " + Fore.GREEN + "elies@dmolina.fr" + Fore.RESET + ".")
-print()
 section_title("Write an email")
 
 # Ask for the destination email address.
