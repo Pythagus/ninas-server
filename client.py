@@ -20,6 +20,9 @@ try:
     sock.connect(('client.host', int(sys.argv[1])))
 except ssl.SSLCertVerificationError as e:
     console.error("Error while checking server's certificate \n" + str(e))
+except Exception as e:
+    console.error(e)
+    sys.exit(e.args[0])
 
 print(sock.version())
 

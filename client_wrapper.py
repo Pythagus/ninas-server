@@ -85,7 +85,7 @@ try:
 except errors.CriticalError as e:
     console.error(e)
     console.error("Aborting.\n")
-    sys.exit(42)
+    sys.exit(e.args[0])
 
 subject = ask("Subject of the mail")
 
@@ -98,6 +98,7 @@ with tempfile.NamedTemporaryFile(delete=False) as f:
     while True:
         try:
             line = input(" " * len(LINE_START))
+            print("LINE = " + line)
             f.write(bytes(line + "\n", 'utf-8'))
         except EOFError:
             break
@@ -109,4 +110,4 @@ status = os.system("python3 client.py " + port + " " + dst_email_addr + " '" + s
 if status == 0:
     print(Fore.BLUE + LINE_START + "Thank you for using our mail service, see you !")
 else:
-    print("Something went wrong")
+    console.error("An error occurred.")
