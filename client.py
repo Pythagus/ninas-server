@@ -9,10 +9,23 @@ import time
 import sys
 import ssl
 
+# Get the arguments of the command line
+src_email = sys.argv[2]
+EmailAddress.assertValidAddress(src_email)
+src_user_name , src_domain_name = src_email.split("@")
+
+dst_email = sys.argv[3]
+EmailAddress.assertValidAddress(dst_email)
+dst_user_name , dst_domain_name = dst_email.split("@")
+
+subject = sys.argv[4]
+mail_file_name = sys.argv[5]
+
+
 
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-context.load_cert_chain('./keys/elies@dmolina.fr/cert.pem', './keys/elies@dmolina.fr/key-decrypted.pem')
-context.load_verify_locations(cafile="./keys/demoCA/cacert.pem")
+context.load_cert_chain('./samples/' + src_email + '/keys/cert.pem', './samples/' + src_email + '/keys/key.pem')
+context.load_verify_locations(cafile="./samples/keys/demoCA/cacert.pem")
 
 init_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
 sock = context.wrap_socket(init_sock,server_side=False, server_hostname='client.host')
@@ -26,16 +39,8 @@ print(sock.version())
 
 
 # Create and send the HELLO request.
-hello = HelloRequest(sock, "dmolina.fr")
+hello = HelloRequest(sock, src_domain_name)
 hello.send()
-
-# Get the arguments of the command line
-email = sys.argv[2]
-EmailAddress.assertValidAddress(email)
-dst_user_name , dst_domain_name = email.split("@")
-
-subject = sys.argv[3]
-mail_file_name = sys.argv[4]
 
 while True:
     obj = NetworkTools.receiveNetworkObject(sock)
@@ -50,7 +55,7 @@ while True:
 
     # The client first contact response.
     if obj_type == HelloResponse:
-        MailUsersRequest(sock, "elies", dst_user_name, dst_domain_name).send()
+        MailUsersRequest(sock, src_user_name, dst_user_name, dst_domain_name).send()
     elif obj_type == MailUsersResponse:
         MailPayloadRequest(sock, subject, time.time(), mail_file_name).send()
         break

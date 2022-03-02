@@ -18,8 +18,7 @@ LINE_START = "\t>>> "
 print(colorama.Fore.BLUE + LINE_START + "Created by Damien Molina, Maud Pennetier and Elies Tali with " + colorama.Fore.MAGENTA + "💝\n")
 
 
-print(colorama.Fore.RED + LINE_START + "You are logged as elies@dmolina.fr.")
-
+src_email_addr = input(colorama.Fore.YELLOW +LINE_START +  "Source email adress : " + colorama.Fore.RESET)
 dst_email_addr = input(colorama.Fore.YELLOW +LINE_START +  "Destination email adress : " + colorama.Fore.RESET)
 subject = input(colorama.Fore.YELLOW + LINE_START + "Subject of the mail : " + colorama.Fore.RESET)
 
@@ -38,7 +37,7 @@ with tempfile.NamedTemporaryFile(delete=False) as f:
 
 
 port = sys.argv[1]
-status = os.system("python3 client.py " + port + " " + dst_email_addr + " '" + subject + "' " + file_name)
+status = os.system("python3 client.py " + port + " " + src_email_addr + " " + dst_email_addr + " '" + subject + "' " + file_name)
 
 
 if status == 0:
