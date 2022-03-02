@@ -1,20 +1,25 @@
-from colorama import Fore
+from colorama import Fore, Back
 from sys import stderr
 
 
+# Determine whether the debugging mode
+# is enabled.
 DEBUG = True
+
+def _print(message, slug="", back="", fore="", file=None):
+    print(back + fore + slug + Back.RESET + Fore.RESET + (" " if len(slug) > 0 else "") + str(message), file=file)
 
 
 # Display an error message.
 def error(message):
-    print(Fore.RED + str(message) + Fore.RESET, file=stderr)
+    _print(message, " ERROR ", Back.RED, "", stderr)
 
 # Display a warning message.
 def warn(message):
-    print(Fore.YELLOW + str(message) + Fore.RESET)
+    _print(message, " WARNING ", Back.YELLOW, Fore.BLACK)
 
 # Print a message only if the
 # debug mode is enabled.
 def debug(message):
     if DEBUG:
-        print(str(message))
+        _print(message, " DEBUG ", Back.BLUE, Fore.BLACK)
