@@ -21,4 +21,4 @@ class CriticalError(NinasRuntimeError):
         
     # Custom string version of the error.
     def __str__(self):
-         return str(self.type) + " : " + self.message
+         return self.message + " (code: " + str(self.type) + ")"
