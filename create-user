@@ -29,8 +29,47 @@ mkdir $FOLDER/$1/mails/requested
 touch $FOLDER/$1/mails/requested/.gitkeep
 mkdir $FOLDER/$1/mails/sent
 touch $FOLDER/$1/mails/sent/.gitkeep
+mkdir $FOLDER/$1/keys
 
 
-# TODO : generate asymetric keys and certificates.
+# generate asymetric keys and certificates.
+
+
+# Generate config file for the request
+touch /tmp/openssl.cnf
+echo '[ req ]
+ default_bits       = 2048
+ default_md         = sha256
+ prompt             = no
+ encrypt_key        = no
+ distinguished_name = '$1 > /tmp/openssl.cnf
+
+
+
+echo '[ '$1' ]
+ countryName            = "FR"                   # C=
+ stateOrProvinceName    = "Occitanie"           # ST=
+ localityName           = "Toulouse"            # L=
+ organizationName       = "XXXX"         # O=
+ organizationalUnitName = "'`date`'"    # OU=
+ commonName             = "'$1'"        # CN=
+ emailAddress           = "tata@tata.fr" # CN/emailAddress=' >> /tmp/openssl.cnf
+
+
+# Create request
+openssl req -new -keyout $FOLDER/keys/newkey.pem -out $FOLDER/keys/newreq.pem -config /tmp/openssl.cnf
+cd $FOLDER/keys
+
+#Sign the request and create the certificate
+/usr/lib/ssl/misc/CA.pl -sign 
+
+#Clean and move the files to the right dirs
+cd ../..
+cat $FOLDER/keys/demoCA/cacert.pem >> $FOLDER/keys/newcert.pem
+mv $FOLDER/keys/newkey.pem $FOLDER/$1/keys/key.pem
+mv $FOLDER/keys/newcert.pem $FOLDER/$1/keys/cert.pem
+rm $FOLDER/keys/newreq.pem
+
+
 
 echo -e "\e[32mUser $1 successfully created!\e[0m"

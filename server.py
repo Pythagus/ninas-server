@@ -23,8 +23,8 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         context.verify_mode = ssl.CERT_REQUIRED
-        context.load_cert_chain('./keys/' + HOST + '/cert.pem', './keys/' + HOST + '/key-decrypted.pem')
-        context.load_verify_locations(cafile = './keys/demoCA/cacert.pem')
+        context.load_cert_chain('./samples/keys/' + HOST + '/cert.pem', './samples/keys/' + HOST + '/key.pem', password='tata')
+        context.load_verify_locations(cafile = './samples/keys/demoCA/cacert.pem')
 
         self.socket = context.wrap_socket(self.socket, server_side=True)
         self.socket.bind((HOST, PORT))
@@ -73,8 +73,8 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         mail.setAttr('src_server_domain_name', HOST)
 
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        context.load_cert_chain('./keys/' + HOST + '/cert.pem', './keys/' + HOST + '/key.pem')
-        context.load_verify_locations(cafile = './keys/demoCA/cacert.pem')
+        context.load_cert_chain('./samples/keys/' + HOST + '/cert.pem', './samples/keys/' + HOST + '/key.pem', password='tata')
+        context.load_verify_locations(cafile = './samples/keys/demoCA/cacert.pem')
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
         ssock = context.wrap_socket(sock,server_side=False,server_hostname='server.host')
@@ -86,7 +86,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         self.sock = ssock
 
-        hello = HelloServerRequest(self.sock, "ninas.client.host", "dmolina.fr")
+        hello = HelloServerRequest(self.sock, "ninas." + HOST, mail.src_domain_name)
         hello.send()
 
 
@@ -126,7 +126,7 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
 
         # Server as an src server
         elif obj_type == HelloServerResponse:
-            MailUsersRequest(obj.socket, "elies", mail.dst_user_name, mail.dst_domain_name).send()
+            MailUsersRequest(obj.socket, mail.src_user_name, mail.dst_user_name, mail.dst_domain_name).send()
 
         # Server to client
         elif obj_type == HelloRequest:

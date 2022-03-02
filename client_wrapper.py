@@ -105,7 +105,7 @@ with tempfile.NamedTemporaryFile(delete=False) as f:
 
 
 port = sys.argv[1]
-status = os.system("python3 client.py " + port + " " + dst_email_addr + " '" + subject + "' " + file_name)
+status = os.system("python3 client.py " + port + " " + src_email_addr + " " + dst_email_addr + " '" + subject + "' " + file_name)
 
 if status == 0:
     print(Fore.BLUE + LINE_START + "Thank you for using our mail service, see you !")
