@@ -70,8 +70,14 @@ class AuthorizationList(object):
     def add(self, value):
         if not self.contains(value):
             self.arr.append(value)
-    
-     
+
+    # Removes an item from the list
+    def remove(self, email_addr):
+        if self.contains(email_addr):
+            self.arr.pop(self.arr.index(email_addr))
+
+
+
 # Users' blacklist list.
 class BlackList(AuthorizationList):
     # Initialzie the authorization list.

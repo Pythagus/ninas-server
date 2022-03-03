@@ -5,6 +5,7 @@ __NINAS Is Not Another SMTP__ is a [TLS-SEC](https://tls-sec.github.io/) researc
 You can install the dependencies using:
 ```bash
 sudo apt install python3-dnspython
+sudo apt install python3-simple-term-menu
 ```
 
 ## Testing
