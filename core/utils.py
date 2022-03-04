@@ -1,5 +1,5 @@
-from ninas.errors import NinasRuntimeError
-from ninas import console
+from core.errors import NinasRuntimeError
+from core import console
 import json
 import os
 

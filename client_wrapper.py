@@ -1,9 +1,9 @@
-from colorama import Fore, Back, Style
 from ninas.lists import BlackList, RequestList, WhiteList
-from ninas import security
-from ninas import console
-from ninas import errors
 from simple_term_menu import TerminalMenu
+from colorama import Fore, Back, Style
+from ninas import security
+from core import console
+from core import errors
 import tempfile
 import shutil
 import sys

@@ -1,9 +1,9 @@
 from ninas.lists import BlackList, BlackListServer, RequestList, WhiteList
 from ninas.security import SPF, EmailAddress, getNinasServerAddress
-from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
-from ninas.errors import CriticalError, Err
-from ninas.utils import NList
-from ninas import console
+from core.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
+from core.errors import CriticalError, Err
+from core.utils import NList
+from core import console
 import socketserver
 import time
 import ssl
