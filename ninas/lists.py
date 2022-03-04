@@ -6,6 +6,7 @@ from ninas import console
 import json
 import time
 import os
+import shutil
 
 JSON_INDENT = 4 if console.DEBUG else None 
 
@@ -158,8 +159,14 @@ class RequestList(AuthorizationList):
                 
         for file in files:
             os.remove(
-                MailFormatter.path(self.auth.email, "mails/requested/" + file)
+                MailFormatter.path(self.email, "mails/requested/" + file)
             )
+
+    def moveEmails(self, email_addr):
+        files = self._requestedEmails(email_addr)
+
+        for file in files:
+            shutil.move(MailFormatter.path(self.email, "mails/requested/" + file), MailFormatter.path(self.email, "mails/" + file))
 
     # Ask every requests to the user.
     def ask(self):
@@ -176,12 +183,17 @@ class RequestList(AuthorizationList):
                 val = console.ask(email + " wants to contact you. Do you?", ending=False, choices=" [y/N] ")
                 
                 if val.lower() in ["y", "yes"]:
-                    # TODO add to whitelist
                     # TODO ask for duration
+                    whitelist = WhiteList(self.email)
+                    whitelist.add(email)
+                    whitelist.save()
+                    self.moveEmails(email)
                     print("OK")
                 else:
-                    # TODO add to blacklist
                     # TODO ask for duration
+                    blacklist = BlackList(self.email)
+                    blacklist.add(email)
+                    blacklist.save()
                     print("NOT OK")
                     self.remove(email)
             else:
