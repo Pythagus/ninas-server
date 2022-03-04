@@ -108,4 +108,5 @@ with ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler) as server:
     except KeyboardInterrupt:
         print()
         console.debug("Stopping NINAS server")
+        server.server_close()
         sys.exit(0)
