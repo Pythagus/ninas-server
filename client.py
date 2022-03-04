@@ -1,7 +1,7 @@
 from ninas.requests import HelloRequest, MailUsersRequest, MailPayloadRequest
 from ninas.responses import HelloResponse, MailUsersResponse
 from core.connection import ClientConnection, HandlingLoop
-from ninas.security import EmailAddress
+from core.security import EmailAddress
 import time
 import sys
 

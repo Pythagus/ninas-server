@@ -1,6 +1,6 @@
 from core.errors import CriticalError, Err
 from datetime import datetime, timedelta
-from ninas.security import EmailAddress
+from core.security import EmailAddress
 from core.utils import MailFormatter
 from core import console
 import shutil

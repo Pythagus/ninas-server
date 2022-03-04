@@ -1,7 +1,7 @@
 from ninas.lists import BlackList, RequestList, WhiteList
 from simple_term_menu import TerminalMenu
 from colorama import Fore, Back, Style
-from ninas import security
+from core import security
 from core import console
 from core import errors
 import tempfile

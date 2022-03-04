@@ -1,5 +1,5 @@
 from ninas.lists import BlackList, BlackListServer, RequestList, WhiteList
-from ninas.security import SPF, EmailAddress, getNinasServerAddress
+from core.security import SPF, EmailAddress, getNinasServerAddress
 from core.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
 from core.errors import CriticalError, Err
 from core.utils import NList
