@@ -1,68 +1,45 @@
 from ninas.requests import HelloRequest, MailUsersRequest, MailPayloadRequest
 from ninas.responses import HelloResponse, MailUsersResponse
-from ninas.utils import NinasRuntimeError
+from ninas.connection import ClientConnection, HandlingLoop
 from ninas.security import EmailAddress
-from ninas.network import NetworkTools
-from ninas import console
-import socket
 import time
 import sys
-import ssl
 
-# Get the arguments of the command line
+PORT = int(sys.argv[1])
+
+# Get the source email address.
 src_email = sys.argv[2]
 EmailAddress.assertValidAddress(src_email)
-src_user_name , src_domain_name = src_email.split("@")
+src_user_name, src_domain_name = src_email.split("@")
 
+# Get the destination email address.
 dst_email = sys.argv[3]
 EmailAddress.assertValidAddress(dst_email)
-dst_user_name , dst_domain_name = dst_email.split("@")
+dst_user_name, dst_domain_name = dst_email.split("@")
 
-subject = sys.argv[4]
+# Get the other command line parameters.
+subject        = sys.argv[4]
 mail_file_name = sys.argv[5]
 
-
-
-context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-context.load_cert_chain('./samples/' + src_email + '/keys/cert.pem', './samples/' + src_email + '/keys/key.pem')
-context.load_verify_locations(cafile="./samples/keys/demoCA/cacert.pem")
-
-init_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
-sock = context.wrap_socket(init_sock,server_side=False, server_hostname='client.host')
-try:
-    sock.connect(('client.host', int(sys.argv[1])))
-except ssl.SSLCertVerificationError as e:
-    console.error("Error while checking server's certificate \n" + str(e))
-except Exception as e:
-    console.error(e)
-    sys.exit(e.args[0])
-
-print(sock.version())
-
-
+# Create the connection.
+connection = ClientConnection(src_email + '/keys', 'client.host')
+connection.start(PORT)
 
 # Create and send the HELLO request.
-hello = HelloRequest(sock, src_domain_name)
-hello.send()
+HelloRequest(connection.socket, src_domain_name).send()
 
-while True:
-    obj = NetworkTools.receiveNetworkObject(sock)
-    obj_type = type(obj)
-    
-    # Try to handle the network object.
-    try:
-        obj.handle()
-    except NinasRuntimeError as e:
-        console.warn(e)
-        break 
-
+# Handle the network object after their
+# internal handle() method.
+def handler(obj, obj_type, mail):
     # The client first contact response.
     if obj_type == HelloResponse:
-        MailUsersRequest(sock, src_user_name, dst_user_name, dst_domain_name).send()
+        MailUsersRequest(obj.socket, src_user_name, dst_user_name, dst_domain_name).send()
+        
+    # A simple ACK response after users data sent.
     elif obj_type == MailUsersResponse:
-        MailPayloadRequest(sock, subject, time.time(), mail_file_name).send()
-        break
+        MailPayloadRequest(obj.socket, subject, time.time(), mail_file_name).send()
+        return False
 
+    return True
 
-print("Closing client...")
-sock.close()
+HandlingLoop(handler).fromSocket(connection.socket).run()
