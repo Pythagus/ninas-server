@@ -31,7 +31,7 @@ HelloRequest(connection.socket, src_domain_name).send()
 
 # Handle the network object after their
 # internal handle() method.
-def handler(obj, obj_type, mail=None, tcp_handler=None):
+def handler(obj, obj_type):
     # The client first contact response.
     if obj_type == HelloResponse:
         MailUsersRequest(obj.socket, src_user_name, dst_user_name, dst_domain_name).send()

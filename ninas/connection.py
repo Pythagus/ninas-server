@@ -40,7 +40,17 @@ class HandlingLoop(object):
             
             try:
                 obj.handle(self.mail)
-                continue_connection = self.responder(obj, type(obj), mail=self.mail, tcp_handler=self.tcp_handler)
+                args = {}
+                
+                # If there is a mail instance.
+                if self.mail is not None:
+                    args['mail'] = self.mail
+                    
+                # If a tcp_handler was given.
+                if self.tcp_handler is not None:
+                    args['tcp_handler'] = self.tcp_handler
+                    
+                continue_connection = self.responder(obj, type(obj), **args)
             except Exception as e:
                 e_type = type(e)
                 console.warn(

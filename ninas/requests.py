@@ -1,8 +1,8 @@
 from ninas.lists import BlackList, BlackListServer, RequestList, WhiteList
 from ninas.security import SPF, EmailAddress, getNinasServerAddress
 from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
-from ninas.errors import CriticalError, Err
 from ninas.utils import NList, PayloadAnalyis
+from ninas.errors import CriticalError, Err
 from ninas import console
 import time
 import ssl
@@ -62,13 +62,12 @@ class HelloRequest(Request):
             'client_domain_name': self.client_domain_name
         }).toBytes()
 
+    # Handle the incoming request.
     def handle(self, mail):
+        console.debug("Handling HelloRequest")
+        
         mail.setAttr('server_to_server_com', False)
         mail.setAttr('src_domain_name', self.client_domain_name)
-
-
-
-
 
 
 # Request made from a NINAS client to a
