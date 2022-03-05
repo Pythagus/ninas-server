@@ -1,7 +1,9 @@
 from core.errors import NinasRuntimeError
 from core import console
+from Levenshtein import distance as lev
 import json
 import os
+import re
 
 
 # Base class to manage NINAS List
@@ -28,14 +30,38 @@ class NList(object):
 # payload was received.
 class MalformedArrayError(NinasRuntimeError): ...
 
+# Class that implements payload checks
+class PayloadAnalyis(object):
+    
+    # Check the similarities beetwenn domain names
+    @staticmethod
+    def checkDomainSimilarities(mail):
+        console.debug("hello, lev")
+        score = lev(mail.src_domain_name, mail.dst_domain_name)
+        console.debug("SCORE : " + str(score))
+        if score < 4 and score != 0:
+            mail.setAttr('flag', mail.flag + ['SIMILAR_DOMAIN_NAMES'])
+
+    # Check if there are URLS in the mail
+    @staticmethod
+    def checkForUrls(mail):
+        regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
+        url = re.findall(regex,mail.payload)
+        if url != []:
+            mail.setAttr('flag' ,mail.flag + ["URLS_IN_PAYLOAD"])
+
+
 
 # Stores the info about the mail to be sent
 # Gets updated each time the server receives some info
 class MailInfo(object):
     __slots__ = [
         'server_to_server_com', 'src_server_domain_name', 'src_domain_name', 'dst_domain_name' ,'src_user_name', 'dst_user_name', 
-        'sent_date', 'received_date', 'subject', 'payload', 'is_requested'
+        'sent_date', 'received_date', 'subject', 'payload', 'is_requested', 'flag'
     ]
+
+    def __init__(self) :
+        self.flag = []
 
     # Updates the value of an attribute 
     # which name is in "key"

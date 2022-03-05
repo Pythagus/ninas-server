@@ -6,6 +6,7 @@ You can install the dependencies using:
 ```bash
 sudo apt install python3-dnspython
 sudo apt install python3-simple-term-menu
+pip install python-Levenshtein
 ```
 
 ## Testing

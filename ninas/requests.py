@@ -2,7 +2,7 @@ from ninas.lists import BlackList, BlackListServer, RequestList, WhiteList
 from core.security import SPF, EmailAddress, getNinasServerAddress
 from core.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
 from core.errors import CriticalError, Err
-from core.utils import NList
+from core.utils import NList, PayloadAnalyis
 from core import console
 import socketserver
 import time
@@ -201,6 +201,10 @@ class MailUsersRequest(Request):
                 req_list.save()
                 
                 mail.setAttr('is_requested', True)
+
+            #Check for similarities in domain names
+            PayloadAnalyis.checkDomainSimilarities(mail)
+
         else:
             EmailAddress.assertUserExists(src_addr)
             
@@ -277,6 +281,15 @@ class MailPayloadRequest(Request):
             f.write("FROM: " + mail.fullSrcAddr() + "\n")
             f.write("TO: " + mail.fullDstAddr() + "\n")
             f.write("SUBJECT: " + mail.subject + "\n")
+
+            if (mail.server_to_server_com):
+                #Check for URLS in mail
+                PayloadAnalyis.checkForUrls(mail)
+
+                # Add flags to the mail
+                flags = ",".join(mail.flag)
+                f.write("FLAGS: " + flags + "\n")
+
             f.write("SENT DATE: " + str(mail.sent_date) + "\n")
             f.write("RECEIVED DATE: " + str(mail.received_date) + "\n")
             f.write("CONTENT:\n")
