@@ -4,7 +4,6 @@ from core.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
 from core.errors import CriticalError, Err
 from core.utils import NList
 from core import console
-import socketserver
 import time
 import ssl
 
@@ -18,7 +17,7 @@ REQ_MAIL_PAYLOAD = PAYLOAD_REQUEST_MASK + 30
 
 # Base request class used for
 # every network requests.
-class Request(NetworkBasePayload, socketserver.BaseRequestHandler):
+class Request(NetworkBasePayload):
 
      # Get a correspondence dictionnary
      # between network payload type and
