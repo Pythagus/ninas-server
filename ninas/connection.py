@@ -138,7 +138,13 @@ class ServerConnection(Connection):
     # Start the server listening.
     def start(self, socket, server_name, port, max_connection):
         self.socket = self.context.wrap_socket(socket, server_side=True)
-        self.socket.bind((server_name, port))
+        
+        try:
+            self.socket.bind((server_name, port))
+        except Exception as e:
+            console.error("(" + server_name + ", " + str(port) + ") : " + str(e))
+            sys.exit(e.args[0])
+            
         self.socket.listen(max_connection)
 
 
