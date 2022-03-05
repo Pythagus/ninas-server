@@ -1,10 +1,14 @@
-from ninas.network import NetworkTools
 from ninas.errors import CriticalError
+from ninas.network import NetworkTools
+from ninas.utils import MailInfo
 from ninas import responses
 from ninas import console
+import socketserver
+import threading
 import socket
 import sys
 import ssl
+
 
 
 # Root folder for keys and certificates.
@@ -12,12 +16,13 @@ _ROOT = 'samples'
 
 
 class HandlingLoop(object):
-    __slots__ = ['responder', 'mail', 'socket', 'respond_on_critical_error']
+    __slots__ = ['tcp_handler', 'responder', 'mail', 'socket', 'respond_on_critical_error']
     
     # Create the looper.
-    def __init__(self, responder, mail=None, respond_on_critical_error=False):
-        self.responder = responder
-        self.mail      = mail
+    def __init__(self, responder, mail=None, respond_on_critical_error=False, tcp_handler=None):
+        self.responder   = responder
+        self.mail        = mail
+        self.tcp_handler = tcp_handler
         self.respond_on_critical_error = respond_on_critical_error
         
     # Set the socket.
@@ -35,7 +40,7 @@ class HandlingLoop(object):
             
             try:
                 obj.handle(self.mail)
-                continue_connection = self.responder(obj, type(obj), self.mail)
+                continue_connection = self.responder(obj, type(obj), mail=self.mail, tcp_handler=self.tcp_handler)
             except Exception as e:
                 e_type = type(e)
                 console.warn(
@@ -135,3 +140,57 @@ class ServerConnection(Connection):
         self.socket = self.context.wrap_socket(socket, server_side=True)
         self.socket.bind((server_name, port))
         self.socket.listen(max_connection)
+
+
+# Main class used to handle
+# every incoming payload like
+# requests and responses. This
+# is thread-programming
+class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
+    def handle(self):
+        console.debug("Connection from " + str(self.client_address))
+        
+        mail = MailInfo()
+        self.loop = HandlingLoop(self.server.handler, mail, True, tcp_handler=self).fromSocket(self.request)
+        self.loop.run()
+
+
+# Base threaded server class.
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer): 
+    __slots__ = ['handler']
+    
+    def __init__(self, host, port, RequestHandlerClass):
+        super().__init__((host, port), RequestHandlerClass, False)
+        
+        connection = ServerConnection('keys/' + host, password='tata')
+        connection.start(self.socket, host, port, 5)
+        self.socket = connection.socket
+
+
+# The main server instance.
+class Server(object):
+    __slots__ = ['host', 'port', 'handler', 'server']
+    
+    # Initialize the server instance.
+    def __init__(self, host, port, handler):
+        self.host = host
+        self.port = port 
+        self.handler = handler
+        
+    # Start the server instance.
+    def start(self):
+        self.server = ThreadedTCPServer(self.host, self.port, ThreadedTCPRequestHandler)
+        self.server.handler = self.handler
+        
+        # Start a thread with the server.
+        # That thread will then start one more thread for each request.
+        server_thread = threading.Thread(target=self.server.serve_forever)
+        
+        # Exit the server thread when the main thread terminates.
+        server_thread.daemon = True
+        server_thread.start()
+        
+    # Stop the server instance.
+    def stop(self):
+        # The server object will close the server thread.
+        self.server.server_close()
