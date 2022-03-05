@@ -6,7 +6,7 @@ import sys
 
 
 # Current server data.
-HOST, PORT = sys.argv[1], int(sys.argv[2])
+HOST, NINAS_PORT, IMAP_PORT = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
 
 
 # Handling NINAS server packets.
@@ -39,7 +39,7 @@ def ninas_handler(obj, obj_type, mail, tcp_handler):
             # Create the connection.
             connection = ClientConnection('keys/' + HOST, 'server.host', password='tata')
             connection.bind(HOST)
-            connection.start(PORT)
+            connection.start(NINAS_PORT)
 
             # Update the server.
             tcp_handler.request = connection.socket
@@ -62,16 +62,30 @@ def ninas_handler(obj, obj_type, mail, tcp_handler):
     return True
 
 
+# Handling IMAP server packets.
+def imap_handler(obj, obj_type, mail, tcp_handler):
+    pass
+
+
 # The NINAS server instance.
-ninas_server = Server(HOST, PORT, ninas_handler)
+ninas_server = Server(HOST, NINAS_PORT, ninas_handler)
 ninas_server.start()
+
+# The IMAP server instance.
+imap_server = Server(HOST, IMAP_PORT, imap_handler)
+imap_server.start()
 
 
 try:
     while True: pass
+    
 # Handling Ctrl+C on terminal.
-except KeyboardInterrupt:
-    print()
-    console.debug("Stopping NINAS server")
-    ninas_server.stop()
-    sys.exit(0)
+except KeyboardInterrupt: pass
+
+print()
+console.debug("Stopping NINAS server")
+ninas_server.stop()
+console.debug("Stopping IMAP server")
+imap_server.stop()
+console.debug("Bye!")
+sys.exit(0)

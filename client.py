@@ -5,25 +5,26 @@ from ninas.security import EmailAddress
 import time
 import sys
 
-PORT = int(sys.argv[1])
+NINAS_PORT = int(sys.argv[1])
+IMAP_PORT  = int(sys.argv[2])
 
 # Get the source email address.
-src_email = sys.argv[2]
+src_email = sys.argv[3]
 EmailAddress.assertValidAddress(src_email)
 src_user_name, src_domain_name = src_email.split("@")
 
 # Get the destination email address.
-dst_email = sys.argv[3]
+dst_email = sys.argv[4]
 EmailAddress.assertValidAddress(dst_email)
 dst_user_name, dst_domain_name = dst_email.split("@")
 
 # Get the other command line parameters.
-subject        = sys.argv[4]
-mail_file_name = sys.argv[5]
+subject        = sys.argv[5]
+mail_file_name = sys.argv[6]
 
 # Create the connection.
 connection = ClientConnection(src_email + '/keys', 'client.host')
-connection.start(PORT)
+connection.start(NINAS_PORT)
 
 # Create and send the HELLO request.
 HelloRequest(connection.socket, src_domain_name).send()

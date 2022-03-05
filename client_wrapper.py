@@ -175,8 +175,9 @@ while option != LOG_OUT:
                     break
 
 
-        port = sys.argv[1]
-        status = os.system("python3 client.py " + port + " " + src_email_addr + " " + dst_email_addr + " '" + subject + "' " + file_name)
+        ninas_port = sys.argv[1]
+        imap_port  = sys.argv[2]
+        status = os.system("python3 client.py " + ninas_port + " " + imap_port + " " + src_email_addr + " " + dst_email_addr + " '" + subject + "' " + file_name)
 
         if status == 0:
             print(Fore.BLUE + console.LINE_START + "No problems detected while sending your mail, congrats !")
