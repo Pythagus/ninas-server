@@ -1,10 +1,9 @@
 from ninas.lists import BlackList, BlackListServer, RequestList, WhiteList
-from core.security import SPF, EmailAddress, getNinasServerAddress
-from core.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
-from core.errors import CriticalError, Err
-from core.utils import NList, PayloadAnalyis
-from core import console
-import socketserver
+from ninas.security import SPF, EmailAddress, getNinasServerAddress
+from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
+from ninas.errors import CriticalError, Err
+from ninas.utils import NList, PayloadAnalyis
+from ninas import console
 import time
 import ssl
 
@@ -18,7 +17,7 @@ REQ_MAIL_PAYLOAD = PAYLOAD_REQUEST_MASK + 30
 
 # Base request class used for
 # every network requests.
-class Request(NetworkBasePayload, socketserver.BaseRequestHandler):
+class Request(NetworkBasePayload):
 
      # Get a correspondence dictionnary
      # between network payload type and

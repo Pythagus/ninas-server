@@ -1,5 +1,5 @@
-from core.errors import NinasRuntimeError
-from core import console
+from ninas.errors import NinasRuntimeError
+from ninas import console
 from Levenshtein import distance as lev
 import json
 import os
@@ -36,9 +36,7 @@ class PayloadAnalyis(object):
     # Check the similarities beetwenn domain names
     @staticmethod
     def checkDomainSimilarities(mail):
-        console.debug("hello, lev")
         score = lev(mail.src_domain_name, mail.dst_domain_name)
-        console.debug("SCORE : " + str(score))
         if score < 4 and score != 0:
             mail.setAttr('flag', mail.flag + ['SIMILAR_DOMAIN_NAMES'])
 

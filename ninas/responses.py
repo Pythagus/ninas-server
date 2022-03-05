@@ -1,6 +1,6 @@
-from core.network import NetworkBasePayload, PAYLOAD_RESPONSE_MASK
-from core.utils import NList
-from core import console
+from ninas.network import NetworkBasePayload, PAYLOAD_RESPONSE_MASK
+from ninas.utils import NList
+from ninas import console
 
 
 # Responses identifiers.
