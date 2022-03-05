@@ -1,6 +1,7 @@
 from ninas.responses import HelloServerResponse, HelloResponse, MailPayloadResponse, MailUsersResponse
 from ninas.requests import HelloRequest, HelloServerRequest, MailUsersRequest, MailPayloadRequest
 from ninas.connection import ClientConnection, Server
+from ninas.utils import MailInfo
 from ninas import console
 import sys
 
@@ -63,12 +64,12 @@ def ninas_handler(obj, obj_type, mail, tcp_handler):
 
 
 # Handling IMAP server packets.
-def imap_handler(obj, obj_type, mail, tcp_handler):
+def imap_handler(obj, obj_type):
     pass
 
 
 # The NINAS server instance.
-ninas_server = Server(HOST, NINAS_PORT, ninas_handler)
+ninas_server = Server(HOST, NINAS_PORT, ninas_handler, mail=MailInfo())
 ninas_server.start()
 
 # The IMAP server instance.

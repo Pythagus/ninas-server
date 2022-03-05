@@ -39,12 +39,13 @@ class HandlingLoop(object):
             obj = NetworkTools.receiveNetworkObject(self.socket)
             
             try:
-                obj.handle(self.mail)
                 args = {}
                 
                 # If there is a mail instance.
                 if self.mail is not None:
-                    args['mail'] = self.mail
+                    args['mail'] = self.mail    
+                                
+                obj.handle(**args)
                     
                 # If a tcp_handler was given.
                 if self.tcp_handler is not None:
@@ -166,14 +167,14 @@ class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def handle(self):
         console.debug("Connection from " + str(self.client_address))
         
-        mail = MailInfo()
-        self.loop = HandlingLoop(self.server.handler, mail, True, tcp_handler=self).fromSocket(self.request)
+        self.loop = HandlingLoop(self.server.handler, mail=self.server.mail, respond_on_critical_error=True, tcp_handler=self)
+        self.loop.fromSocket(self.request)
         self.loop.run()
 
 
 # Base threaded server class.
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer): 
-    __slots__ = ['handler']
+    __slots__ = ['handler', 'mail']
     
     def __init__(self, host, port, RequestHandlerClass):
         super().__init__((host, port), RequestHandlerClass, False)
@@ -185,18 +186,20 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
 # The main server instance.
 class Server(object):
-    __slots__ = ['host', 'port', 'handler', 'server']
+    __slots__ = ['host', 'port', 'handler', 'server', 'mail']
     
     # Initialize the server instance.
-    def __init__(self, host, port, handler):
+    def __init__(self, host, port, handler, mail=None):
         self.host = host
         self.port = port 
+        self.mail = mail
         self.handler = handler
         
     # Start the server instance.
     def start(self):
         self.server = ThreadedTCPServer(self.host, self.port, ThreadedTCPRequestHandler)
         self.server.handler = self.handler
+        self.server.mail    = self.mail
         
         # Start a thread with the server.
         # That thread will then start one more thread for each request.
