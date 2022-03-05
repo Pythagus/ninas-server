@@ -1,7 +1,7 @@
-from core.errors import CriticalError
-from core.network import NetworkTools
+from ninas.network import NetworkTools
+from ninas.errors import CriticalError
 from ninas import responses
-from core import console
+from ninas import console
 import socket
 import sys
 import ssl

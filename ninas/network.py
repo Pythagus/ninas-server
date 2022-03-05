@@ -1,6 +1,6 @@
-from core.utils import MalformedArrayError, NinasRuntimeError
+from ninas.utils import MalformedArrayError, NinasRuntimeError
 from abc import abstractmethod
-from core import console
+from ninas import console
 import json
 
 PAYLOAD_MASK_RANGE    = 10000

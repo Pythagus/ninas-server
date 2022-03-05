@@ -1,8 +1,8 @@
-from core.errors import CriticalError, Err
+from ninas.errors import CriticalError, Err
 from datetime import datetime, timedelta
-from core.security import EmailAddress
-from core.utils import MailFormatter
-from core import console
+from ninas.security import EmailAddress
+from ninas.utils import MailFormatter
+from ninas import console
 import shutil
 import json
 import time

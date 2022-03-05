@@ -1,5 +1,5 @@
-from core.errors import CriticalError, Err
-from core import console
+from ninas.errors import CriticalError, Err
+from ninas import console
 import dns.resolver
 import re
 import os

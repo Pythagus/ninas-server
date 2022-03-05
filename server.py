@@ -1,8 +1,8 @@
 from ninas.responses import HelloServerResponse, HelloResponse, MailPayloadResponse, MailUsersResponse
 from ninas.requests import HelloRequest, HelloServerRequest, MailUsersRequest, MailPayloadRequest
-from core.connection import ClientConnection, ServerConnection, HandlingLoop
-from core.utils import MailInfo
-from core import console
+from ninas.connection import ClientConnection, ServerConnection, HandlingLoop
+from ninas.utils import MailInfo
+from ninas import console
 import socketserver
 import threading
 import sys
