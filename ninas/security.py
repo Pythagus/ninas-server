@@ -29,8 +29,7 @@ class EmailAddress(object):
     # in the file system.
     @staticmethod
     def assertUserExists(email):
-        user_directory = "samples/" + email
-        if not os.path.isdir(user_directory):
+        if not os.path.isdir("samples/" + email):
             raise CriticalError(
                 Err.USER_NOT_FOUND, "User " + email + " not found"
             )

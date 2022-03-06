@@ -1,8 +1,8 @@
 from ninas.lists import BlackList, BlackListServer, RequestList, WhiteList
 from ninas.security import SPF, EmailAddress, getNinasServerAddress
 from ninas.network import NetworkBasePayload, PAYLOAD_REQUEST_MASK
-from ninas.utils import NList, PayloadAnalyis
 from ninas.errors import CriticalError, Err
+from ninas.utils import MailInfo, NList
 from ninas import console
 import time
 import ssl
@@ -200,8 +200,8 @@ class MailUsersRequest(Request):
                 
                 mail.setAttr('is_requested', True)
 
-            #Check for similarities in domain names
-            PayloadAnalyis.checkDomainSimilarities(mail)
+            # Check for similarities in domain names
+            mail.checkDomainSimilarities()
 
         else:
             EmailAddress.assertUserExists(src_addr)
@@ -276,19 +276,19 @@ class MailPayloadRequest(Request):
         
         # Put the email content into the file.
         with open(self.payload_file_name, 'w') as f:
-            f.write("FROM: " + mail.fullSrcAddr() + "\n")
-            f.write("TO: " + mail.fullDstAddr() + "\n")
-            f.write("SUBJECT: " + mail.subject + "\n")
+            MailInfo.writeFile(f, "FROM", mail.fullSrcAddr())
+            MailInfo.writeFile(f, "TO", mail.fullDstAddr())
+            MailInfo.writeFile(f, "SUBJECT", mail.subject)
 
             if (mail.server_to_server_com):
-                #Check for URLS in mail
-                PayloadAnalyis.checkForUrls(mail)
+                # Check for URLS in mail.
+                mail.checkForUrls()
 
                 # Add flags to the mail
                 flags = ",".join(mail.flag)
                 f.write("FLAGS: " + flags + "\n")
 
-            f.write("SENT DATE: " + str(mail.sent_date) + "\n")
-            f.write("RECEIVED DATE: " + str(mail.received_date) + "\n")
-            f.write("CONTENT:\n")
+            MailInfo.writeFile(f, "SENT DATE", mail.sent_date)
+            MailInfo.writeFile(f, "RECEIVED DATE", mail.received_date)
+            MailInfo.writeFile(f, "CONTENT", '')
             f.write(self.payload)
