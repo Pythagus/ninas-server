@@ -162,7 +162,7 @@ class MailRetriever(object):
         return False
     
     # Start retrieving emails.
-    def start(self):
+    def start(self, imap_port):
         # Check the email address validity.
         EmailAddress.assertValidAddress(self.email_addr)
         
@@ -172,7 +172,7 @@ class MailRetriever(object):
         
         connection = ClientConnection(self.email_addr + "/keys", "client.host")
         try:
-            connection.start(8001)
+            connection.start(imap_port)
             ImapRetrieveEmailsRequest(connection.socket, self.email_addr).send()
             HandlingLoop(self.__retrievingHandler, mail_retriever=self).fromSocket(connection.socket).run()       
         except BaseException as e:
