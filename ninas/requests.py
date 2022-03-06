@@ -274,21 +274,4 @@ class MailPayloadRequest(Request):
         else:
             self.payload_file_name = "samples/" + mail.fullSrcAddr() + "/mails/sent/"     + mail.fullDstAddr() + id
         
-        # Put the email content into the file.
-        with open(self.payload_file_name, 'w') as f:
-            MailInfo.writeFile(f, "FROM", mail.fullSrcAddr())
-            MailInfo.writeFile(f, "TO", mail.fullDstAddr())
-            MailInfo.writeFile(f, "SUBJECT", mail.subject)
-
-            if (mail.server_to_server_com):
-                # Check for URLS in mail.
-                mail.checkForUrls()
-
-                # Add flags to the mail
-                flags = ",".join(mail.flag)
-                f.write("FLAGS: " + flags + "\n")
-
-            MailInfo.writeFile(f, "SENT DATE", mail.sent_date)
-            MailInfo.writeFile(f, "RECEIVED DATE", mail.received_date)
-            MailInfo.writeFile(f, "CONTENT", '')
-            f.write(self.payload)
+        mail.store(self.payload_file_name)

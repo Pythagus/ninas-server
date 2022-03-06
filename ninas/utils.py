@@ -44,11 +44,11 @@ class MailInfo(object):
         
         # Mail data.
         'src_server_domain_name', 'src_domain_name', 'dst_domain_name', 'src_user_name', 'dst_user_name', 
-        'sent_date', 'received_date', 'subject', 'payload', 'is_requested', 'flag'
+        'sent_date', 'received_date', 'subject', 'payload', 'is_requested', 'flags'
     ]
 
     def __init__(self) :
-        self.flag = []
+        self.flags = []
 
     # Updates the value of an attribute 
     # which name is in "key"
@@ -67,21 +67,47 @@ class MailInfo(object):
     # Get the full client destination email address.
     def fullDstAddr(self):
         return MailFormatter.fullAddress(self.dst_user_name, self.dst_domain_name)
+    
+    # Add a new flag to the mail.
+    def addFlag(self, flag):
+        self.setAttr('flags', self.flags + [flag])
 
     # Check the similarities beetween domain names.
     def checkDomainSimilarities(self):
         score = lev(self.src_domain_name, self.dst_domain_name)
         
         if score < 4 and score != 0:
-            self.setAttr('flag', self.flag + ['SIMILAR_DOMAIN_NAMES'])
+            self.addFlag('SIMILAR_DOMAIN_NAMES')
             
-    
     # Check if there are URLS in the mail.
     def checkForUrls(self):
         regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
         
         if re.findall(regex, self.payload) != []:
-            self.setAttr('flag', self.flag + ["URLS_IN_PAYLOAD"])
+            self.addFlag('URLS_IN_PAYLOAD')
+         
+    # Store the mail instance into the given file.   
+    def store(self, file_path):
+        self.file_path = file_path
+        print(self.flag)
+        
+        # Put the email content into the file.
+        with open(self.file_path, 'w') as f:
+            MailInfo.writeFile(f, "FROM", self.fullSrcAddr())
+            MailInfo.writeFile(f, "TO", self.fullDstAddr())
+            MailInfo.writeFile(f, "SUBJECT", self.subject)
+
+            if self.server_to_server_com:
+                # Check for URLS in mail.
+                self.checkForUrls()
+
+                # Add flags to the mail
+                MailInfo.writeFile(f, "FLAGS", ",".join(self.flag))
+
+            MailInfo.writeFile(f, "SENT DATE", self.sent_date)
+            MailInfo.writeFile(f, "RECEIVED DATE", self.received_date)
+            MailInfo.writeFile(f, "CONTENT", '')
+            f.write(self.payload)
 
     # Load the current object with the file data.
     @staticmethod
@@ -105,6 +131,8 @@ class MailInfo(object):
                     mail.sent_date = content
                 elif keyword == 'RECEIVED DATE':
                     mail.received_date = content
+                elif keyword == 'FLAGS':
+                    mail.flags = content.split(',')
                 elif keyword == 'CONTENT':
                     # We don't retrieve the payload in that
                     # method. Please use payload().
