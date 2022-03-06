@@ -4,9 +4,12 @@ from colorama import Fore, Back, Style
 from ninas import security
 from ninas import console
 from ninas import errors
+from ninas.imap import MailRetriever
+from ninas.utils import MailInfo
 import tempfile
 import shutil
 import sys
+import datetime
 import os
 
 ASCII_ART = [
@@ -28,9 +31,10 @@ TERM_WIDTH = shutil.get_terminal_size().columns
 
 #Menu options
 
-MAIN_OPTIONS = ["Write an email", "Check incoming requests", "Manage whitelist", "Manage blacklist", "Log out"]
+MAIN_OPTIONS = ["Write an email", "Check incoming requests", "Manage whitelist", "Manage blacklist", "Go to your email box", "Log out"]
 WHITELIST_OPTIONS = ["Display your whitelist", "Add to the whitelist", "Remove from the whitelist", "Go to main menu"]
 BLACKLIST_OPTIONS = ["Display your blacklist", "Add to the blacklist", "Remove from the blacklist", "Go to main menu"]
+MAIL_BOX_OPTIONS = ["Check your mailbox", "Check your sent emails", "Go to main menu"]
 
 # OPTIONS IDEXES
 
@@ -38,11 +42,15 @@ WRITE_MAIL = 0
 REQUESTS = 1
 WHITELIST = 2
 BLACKLIST = 3
-LOG_OUT = 4
+EMAIL_BOX = 4
+LOG_OUT = 5
 
 DISPLAY_LIST = 0
 ADD_LIST = 1
 REMOVE_LIST = 2
+
+CHECK_MAILBOX = 0
+CHECK_SENTMAILS = 1
 
 
 # Get the required padding to center a text.
@@ -61,10 +69,10 @@ def menu_title(title):
     print(Back.GREEN + Fore.BLACK + " " + title + " " + Back.RESET + Fore.RESET)
 
 #Display options and returns the choice
-def displayOptions(options, text_to_show=None, multiple_choise=False):
+def displayOptions(options, text_to_show=None, multiple_choice=False):
     if text_to_show != None:
         menu_title(text_to_show)
-    if not multiple_choise:
+    if not multiple_choice:
         terminal_menu = TerminalMenu(options)
     else:
         terminal_menu = TerminalMenu(options, multi_select=True, show_multi_select_hint=True, multi_select_empty_ok=True, multi_select_select_on_accept=False)
@@ -117,6 +125,23 @@ def ask_email(message):
         sys.exit(42)
         
     return addr
+
+# Displays the payload and info of the mail stored in file
+def displayMail(mail_path):
+    mail = MailInfo.fromFile(mail_path)
+    if mail.flag != []:
+        print(Fore.RED + console.BLANK_LINE_START + "⚠  This mail has the following security flags : " + Back.YELLOW + ",".join(mail.flag) + Back.RESET + ", be careful !" + Fore.RESET)
+    print(Fore.YELLOW +  console.BLANK_LINE_START  + "FROM : " + Fore.RESET + mail.fullSrcAddr())
+    print(Fore.YELLOW +  console.BLANK_LINE_START  +"TO : " + Fore.RESET +mail.fullDstAddr())
+    print(Fore.YELLOW +  console.BLANK_LINE_START  +"SENT AT : " + Fore.RESET +str(datetime.datetime.fromtimestamp(int(float(mail.sent_date)))))
+    if (mail.received_date != None):
+        print(Fore.YELLOW +  console.BLANK_LINE_START  + "RECEIVED AT " + Fore.RESET +str(datetime.datetime.fromtimestamp(int(float(mail.received_date)))))
+    print(Fore.YELLOW +  console.BLANK_LINE_START  +"CONTENT : " + Fore.RESET)
+    print(str(mail.getPayload()))
+    print(center(Back.BLUE + " " * int(TERM_WIDTH *0.7) + Back.RESET))
+    print()
+
+
 
 
 # Ask for the destination email address.
@@ -236,7 +261,7 @@ while option != LOG_OUT:
             else:
                 array = my_list.arr.copy()
                 section_title("Remove from " + name)
-                indexes = displayOptions(my_list.arr, multiple_choise=True)
+                indexes = displayOptions(my_list.arr, multiple_choice=True)
                 if indexes != None:
                     for i in indexes:
                         my_list.remove(array[i])
@@ -244,6 +269,48 @@ while option != LOG_OUT:
                     print(Fore.CYAN + console.BLANK_LINE_START + "Users succesfully removed from your " + name)
             print()
 
+    # Open the mail box
+    elif option == EMAIL_BOX:
+        option = displayOptions(MAIL_BOX_OPTIONS, "Mailbox Menu")
 
+        retriever = MailRetriever(src_email_addr)
+        try:
+            retriever.start(8001)
+        except Exception as e:
+            retriever.clean()
+            console.error(e)
+            sys.exit(e.args[0])
 
+        # Check the mails received
+        if option  == CHECK_MAILBOX:
+            section_title("Mailbox")
+
+            mailbox = []
+            for filename in os.listdir(retriever.folder):
+                if filename.endswith('.mail'):
+                    mailbox.append(filename.split('/')[-1])
+            if mailbox == []:
+                print(console.BLANK_LINE_START + "Empty mailbox")
+            else:
+                indexes = displayOptions(mailbox, "Choose the mails you want to open", multiple_choice=True)
+                if indexes != None:
+                    for i in indexes:
+                        displayMail(retriever.folder + "/" + mailbox[i])
+
+        # Check the mails sent
+        elif option == CHECK_SENTMAILS:
+            section_title("Sent mailbox")
+
+            mailbox = []
+            if os.path.isdir(retriever.folder + "/sent"):
+                for filename in os.listdir(retriever.folder + "/sent"):
+                    if filename.endswith('.mail'):
+                        mailbox.append(filename.split('/')[-1])
+                indexes = displayOptions(mailbox, "Choose the mails you want to open", multiple_choice=True)
+                if indexes != None:
+                    for i in indexes:
+                        displayMail(retriever.folder + "/sent/" + mailbox[i])
+            else:
+                print(console.BLANK_LINE_START + "Empty sent mailbox")
+              
 print(Fore.BLUE + console.LINE_START + "Thank you for using our mail service, see you !\n" + Fore.RESET)

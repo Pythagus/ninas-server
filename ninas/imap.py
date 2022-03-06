@@ -42,6 +42,8 @@ def server_handler(obj, obj_type, tcp_handler):
         # Retrieving all the emails.
         for root, dirs, files in os.walk(mail_folder):
             folder = root.split('/')[-1]
+            if folder == "mails":
+                folder = ""
             
             if folder not in __EXCLUDED_FOLDERS:
                 for file in files:

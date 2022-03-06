@@ -44,11 +44,11 @@ class MailInfo(object):
         
         # Mail data.
         'src_server_domain_name', 'src_domain_name', 'dst_domain_name', 'src_user_name', 'dst_user_name', 
-        'sent_date', 'received_date', 'subject', 'payload', 'is_requested', 'flags'
+        'sent_date', 'received_date', 'subject', 'payload', 'is_requested', 'flag'
     ]
 
     def __init__(self) :
-        self.flags = []
+        self.flag = []
 
     # Updates the value of an attribute 
     # which name is in "key"
@@ -70,7 +70,7 @@ class MailInfo(object):
     
     # Add a new flag to the mail.
     def addFlag(self, flag):
-        self.setAttr('flags', self.flags + [flag])
+        self.setAttr('flag', self.flag + [flag])
 
     # Check the similarities beetween domain names.
     def checkDomainSimilarities(self):
@@ -132,7 +132,7 @@ class MailInfo(object):
                 elif keyword == 'RECEIVED DATE':
                     mail.received_date = content
                 elif keyword == 'FLAGS':
-                    mail.flags = content.split(',')
+                    mail.flag = content.split(',')
                 elif keyword == 'CONTENT':
                     # We don't retrieve the payload in that
                     # method. Please use payload().
