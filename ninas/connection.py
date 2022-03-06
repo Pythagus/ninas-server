@@ -1,6 +1,5 @@
-from ninas.errors import CriticalError
+from ninas.errors import CriticalError, Err
 from ninas.network import NetworkTools
-from ninas.utils import MailInfo
 from ninas import responses
 from ninas import console
 import socketserver
@@ -8,6 +7,7 @@ import threading
 import socket
 import sys
 import ssl
+import os
 
 
 
@@ -101,6 +101,10 @@ class Connection(object):
     def __init__(self, type, auth_folder, password=None):
         # Base folder for authentication.
         base = _ROOT + '/' + auth_folder + '/'
+        
+        # Check whether folder exists.
+        if not os.path.exists(base):
+            raise CriticalError(Err.MISSING_FOLDER, "Folder " + base + " doesn't exist")
         
         # Create the SSL context.
         self.context = ssl.SSLContext(type)
