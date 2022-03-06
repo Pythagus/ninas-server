@@ -3,6 +3,7 @@ from ninas.requests import HelloRequest, HelloServerRequest, MailUsersRequest, M
 from ninas.connection import ClientConnection, Server
 from ninas.utils import MailInfo
 from ninas import console
+from ninas import imap
 import sys
 
 
@@ -63,26 +64,21 @@ def ninas_handler(obj, obj_type, mail, tcp_handler):
     return True
 
 
-# Handling IMAP server packets.
-def imap_handler(obj, obj_type):
-    pass
-
-
 # The NINAS server instance.
 ninas_server = Server(HOST, NINAS_PORT, ninas_handler, mail=MailInfo())
 ninas_server.start()
 
 # The IMAP server instance.
-imap_server = Server(HOST, IMAP_PORT, imap_handler)
+imap_server = Server(HOST, IMAP_PORT, imap.server_handler)
 imap_server.start()
 
-
+# Run the servers indefinitely.
 try:
     while True: pass
-    
 # Handling Ctrl+C on terminal.
 except KeyboardInterrupt: pass
 
+# And then stop the servers if anything happened.
 print()
 console.debug("Stopping NINAS server")
 ninas_server.stop()

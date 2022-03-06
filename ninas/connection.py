@@ -16,13 +16,17 @@ _ROOT = 'samples'
 
 
 class HandlingLoop(object):
-    __slots__ = ['tcp_handler', 'responder', 'mail', 'socket', 'respond_on_critical_error']
+    __slots__ = [
+        'tcp_handler', 'responder', 'mail', 'socket', 'respond_on_critical_error',
+        'mail_retriever'
+    ]
     
     # Create the looper.
-    def __init__(self, responder, mail=None, respond_on_critical_error=False, tcp_handler=None):
+    def __init__(self, responder, mail=None, respond_on_critical_error=False, tcp_handler=None, mail_retriever=None):
         self.responder   = responder
         self.mail        = mail
         self.tcp_handler = tcp_handler
+        self.mail_retriever = mail_retriever
         self.respond_on_critical_error = respond_on_critical_error
         
     # Set the socket.
@@ -43,9 +47,16 @@ class HandlingLoop(object):
                 
                 # If there is a mail instance.
                 if self.mail is not None:
-                    args['mail'] = self.mail    
+                    args['mail'] = self.mail
+                    
+                # If there is a mail retriever instance.
+                if self.mail_retriever is not None:
+                    args['retriever'] = self.mail_retriever
                                 
                 obj.handle(**args)
+                
+                if 'retriever' in args:
+                    del args['retriever']
                     
                 # If a tcp_handler was given.
                 if self.tcp_handler is not None:
@@ -140,6 +151,10 @@ class ClientConnection(Connection):
         except Exception as e:
             console.error(e)
             sys.exit(e.args[0])
+    
+    # Stop the connection.
+    def close(self):
+        self.socket.close()
 
 
 # Server connection creator.        

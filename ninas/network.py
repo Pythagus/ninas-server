@@ -3,9 +3,18 @@ from abc import abstractmethod
 from ninas import console
 import json
 
+
+# Calculate the network object masks.
 PAYLOAD_MASK_RANGE    = 10000
 PAYLOAD_REQUEST_MASK  = 10000
 PAYLOAD_RESPONSE_MASK = PAYLOAD_REQUEST_MASK + PAYLOAD_MASK_RANGE
+PAYLOAD_IMAP_MASK     = PAYLOAD_REQUEST_MASK + PAYLOAD_MASK_RANGE * 2
+
+
+# Determine whether the given type is from
+# the given mask.
+def isTypeFromMask(mask, type):
+    return mask <= type and type <= mask + PAYLOAD_MASK_RANGE - 1
 
 
 # Base network class used in every
@@ -30,13 +39,13 @@ class NetworkBasePayload(object):
     @staticmethod
     def unserialize(socket, values): return None
 
-     # Get a correspondence dictionnary
-     # between network payload type and
-     # a class name.
+    # Get a correspondence dictionnary
+    # between network payload type and
+    # a class name.
     @staticmethod
     def classIdentifierCorrespondence(): raise NotImplementedError
 
-     # Handle the current request.
+    # Handle the current request.
     @abstractmethod
     def handle(self): raise NotImplementedError
 
@@ -58,14 +67,14 @@ class NetworkBasePayload(object):
 class NetworkPacket(object):
     SIZE_LENGTH = 64
 
-    __slots__ = [
-        'payload', 'size'
-    ]
+    __slots__ = ['payload', 'size']
 
+    # Initialize the class instance.
     def __init__(self, payload):
         self.payload = payload
         self.size    = len(payload) + NetworkPacket.SIZE_LENGTH
 
+    # Serialize the network payload.
     def serialize(self):
         size = str(self.size)
         
@@ -78,6 +87,7 @@ class NetworkPacket(object):
 
         return bytes(size, "utf-8") + self.payload 
 
+    # Retrieve the network packet instance from bytes.
     @staticmethod
     def unserialize(values):
         return NetworkPacket(values[NetworkPacket.SIZE_LENGTH:])
@@ -106,16 +116,21 @@ class NetworkTools(object):
 
         type = int(dictionnary['type'])
         class_correspondences = []
-
+        
         # If the payload is a request.
-        if PAYLOAD_REQUEST_MASK <= type <= PAYLOAD_REQUEST_MASK + PAYLOAD_MASK_RANGE - 1:
+        if isTypeFromMask(PAYLOAD_REQUEST_MASK, type):
             from ninas.requests import Request
             class_correspondences = Request.classIdentifierCorrespondence()
 
         # If the payload is a response.
-        elif PAYLOAD_RESPONSE_MASK <= type <= PAYLOAD_RESPONSE_MASK + PAYLOAD_MASK_RANGE - 1:
+        elif isTypeFromMask(PAYLOAD_RESPONSE_MASK, type):
             from ninas.responses import Response
             class_correspondences = Response.classIdentifierCorrespondence()
+            
+        # If the payload is an IMAP object.
+        elif isTypeFromMask(PAYLOAD_IMAP_MASK, type):
+            from ninas.imap import classIdentifierCorrespondence
+            class_correspondences = classIdentifierCorrespondence()
 
         # Else, It's not a known value.
         else:
