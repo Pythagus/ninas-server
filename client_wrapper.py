@@ -127,10 +127,9 @@ def ask_email(message):
     return addr
 
 # Displays the payload and info of the mail stored in file
-def displayMail(mail_path):
-    mail = MailInfo.fromFile(mail_path)
+def displayMail(mail):
     if mail.flag != []:
-        print(Fore.RED + console.BLANK_LINE_START + "⚠  This mail has the following security flags : " + Back.YELLOW + ",".join(mail.flag) + Back.RESET + ", be careful !" + Fore.RESET)
+        print(Fore.RED + console.BLANK_LINE_START + "⚠ This mail has the following security flags : " + Back.YELLOW + ",".join(mail.flag) + Back.RESET + ", be careful !" + Fore.RESET)
     print(Fore.YELLOW +  console.BLANK_LINE_START  + "FROM : " + Fore.RESET + mail.fullSrcAddr())
     print(Fore.YELLOW +  console.BLANK_LINE_START  +"TO : " + Fore.RESET +mail.fullDstAddr())
     print(Fore.YELLOW +  console.BLANK_LINE_START  +"SENT AT : " + Fore.RESET +str(datetime.datetime.fromtimestamp(int(float(mail.sent_date)))))
@@ -140,6 +139,13 @@ def displayMail(mail_path):
     print(str(mail.getPayload()))
     print(center(Back.BLUE + " " * int(TERM_WIDTH *0.7) + Back.RESET))
     print()
+
+def getMailName(mail):
+    if mail.flag == None:
+        return mail.fullSrcAddr()  +" -- " +mail.subject + " -- " +str(datetime.datetime.fromtimestamp(int(float(mail.sent_date))))
+    else:
+        return  mail.fullSrcAddr()  + " -- " + mail.subject +  " -- " + str(datetime.datetime.fromtimestamp(int(float(mail.sent_date)))) +  " -- " +"⚠SECURITY_FLAGS"
+
 
 
 
@@ -286,30 +292,35 @@ while option != LOG_OUT:
             section_title("Mailbox")
 
             mailbox = []
+            mailbox_options = []
             for filename in os.listdir(retriever.folder):
                 if filename.endswith('.mail'):
-                    mailbox.append(filename.split('/')[-1])
+                    mailbox.append(MailInfo.fromFile(retriever.folder + "/" + filename))
+                    mailbox_options.append(getMailName(mailbox[-1]))
             if mailbox == []:
                 print(console.BLANK_LINE_START + "Empty mailbox")
             else:
-                indexes = displayOptions(mailbox, "Choose the mails you want to open", multiple_choice=True)
+                indexes = displayOptions(mailbox_options, "Choose the mails you want to open", multiple_choice=True)
                 if indexes != None:
                     for i in indexes:
-                        displayMail(retriever.folder + "/" + mailbox[i])
+                        displayMail(mailbox[i])
 
         # Check the mails sent
         elif option == CHECK_SENTMAILS:
             section_title("Sent mailbox")
 
             mailbox = []
+            mailbox_options = []
             if os.path.isdir(retriever.folder + "/sent"):
                 for filename in os.listdir(retriever.folder + "/sent"):
                     if filename.endswith('.mail'):
-                        mailbox.append(filename.split('/')[-1])
-                indexes = displayOptions(mailbox, "Choose the mails you want to open", multiple_choice=True)
+                        mailbox.append(MailInfo.fromFile(retriever.folder + "/sent/" + filename))
+                        mailbox_options.append(getMailName(mailbox[-1]))
+                console.debug(mailbox_options)
+                indexes = displayOptions(mailbox_options, "Choose the mails you want to open", multiple_choice=True)
                 if indexes != None:
                     for i in indexes:
-                        displayMail(retriever.folder + "/sent/" + mailbox[i])
+                        displayMail(mailbox[i])
             else:
                 print(console.BLANK_LINE_START + "Empty sent mailbox")
               
